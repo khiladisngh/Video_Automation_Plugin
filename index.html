@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="client/style.css">
+    <script type="text/javascript" src="CSInterface.js"></script>
+    <script type="text/javascript" src="client/main.js"></script>
+    <title>ECCouncil Udemy Automator</title>
+</head>
+<body class="adobe-panel">
+    <div id="container">
+        <h1>Udemy Course Automator</h1>
+
+        <div class="section-container">
+            <h2>Step 1: Setup Project Folders & Premiere Project</h2>
+            <div class="input-group">
+                <label for="courseNameInput">Course Name:</label>
+                <input type="text" id="courseNameInput" class="adobe-input" placeholder="e.g., Wireshark na Pratica">
+            </div>
+            <div class="input-group">
+                <label for="baseDirectoryInput">Base Directory for Courses:</label>
+                <input type="text" id="baseDirectoryInput" class="adobe-input" placeholder="e.g., D:/Udemy_Courses">
+                <button id="browseBaseDirButton" class="adobe-button browse-button">Browse...</button>
+            </div>
+            <button id="setupProjectButton" class="adobe-button">Create/Open Folders & PPro Project</button> <div id="dirSetupStatus" class="status-message"></div>
+            <div id="nextStepsMessage" class="info-message" style="display:none;">
+                <p><strong>Project Setup Complete!</strong></p>
+                <p id="projectStatusSubMessage">A Premiere Pro project has been prepared.</p> <p><strong>Next Steps:</strong></p>
+                <ol>
+                    <li>Place all downloaded raw video lectures into the <strong>'_01_RAW_VIDEOS'</strong> folder within your new course directory.</li>
+                    <li>Place all slide materials (intro, outro, lesson-specific) into the <strong>'_02_SLIDES'</strong> folder.</li>
+                    <li>Once files are in place, proceed to Step 2 to fetch course data from Udemy.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="section-container" style="margin-top: 30px; border-top: 1px solid #555; padding-top: 20px;">
+            <h2>Step 2: Fetch Udemy Course Data & Match</h2>
+            <div class="input-group">
+                <label for="udemyUrlInput">Udemy Course URL:</label>
+                <input type="text" id="udemyUrlInput" class="adobe-input" placeholder="Enter full Udemy course URL">
+            </div>
+            <button id="fetchUdemyDataButton" class="adobe-button">Fetch & Match Course Data</button>
+            <div id="scraperStatus" class="status-message"></div>
+            <div id="collapsibleTreeArea"></div>
+        </div>
+
+         <div class="section-container" style="margin-top: 30px; border-top: 1px solid #555; padding-top: 20px;">
+            <h2>Step 3: Generate Premiere Pro Project Content</h2>
+            <button id="generatePremiereProjectButton" class="adobe-button">Generate Bins & Sequences</button>
+            <div id="premiereStatus" class="status-message"></div>
+        </div>
+    </div>
+</body>
+</html>
