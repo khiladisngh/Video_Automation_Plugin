@@ -3,6 +3,8 @@
     /* Spectrum Base Colors (Darkest Theme as a reference) */
     --spectrum-global-color-status: transparent;
     /* Not directly used, but for context */
+    --spectrum-global-color-gray-100: rgb(38, 38, 38);
+    /* Darker for scrollbar track */
     --spectrum-global-color-gray-200: rgb(50, 50, 50);
     /* Panel Background */
     --spectrum-global-color-gray-300: rgb(62, 62, 62);
@@ -10,9 +12,9 @@
     --spectrum-global-color-gray-400: rgb(75, 75, 75);
     /* Borders, UI elements */
     --spectrum-global-color-gray-500: rgb(90, 90, 90);
-    /* UI element borders, secondary text */
+    /* UI element borders, secondary text, scrollbar thumb */
     --spectrum-global-color-gray-600: rgb(122, 122, 122);
-    /* Secondary text, icons */
+    /* Secondary text, icons, scrollbar thumb hover */
     --spectrum-global-color-gray-700: rgb(157, 157, 157);
     /* Primary text, icons */
     --spectrum-global-color-gray-800: rgb(202, 202, 202);
@@ -65,6 +67,8 @@
     /* For darker on lighter */
     --spectrum-alias-border-focus: var(--spectrum-global-color-blue-500);
     --spectrum-alias-border-radius-regular: 3px;
+    --spectrum-alias-border-radius-small: 2px;
+
 
     /* Component Heights (approximate, Spectrum is flexible) */
     --spectrum-component-height-100: 30px;
@@ -78,30 +82,91 @@ body.adobe-panel {
     background-color: var(--spectrum-global-color-gray-200);
     color: var(--spectrum-global-color-gray-800);
     margin: 0;
-    padding: var(--spectrum-spacing-200);
+    padding: var(--spectrum-spacing-100);
+    /* Reduced overall padding */
     font-size: var(--spectrum-global-font-size-100);
     display: flex;
     flex-direction: column;
     height: 100vh;
     box-sizing: border-box;
     overflow-y: auto;
+    /* This enables scrolling on the body */
+}
+
+/* Custom Scrollbar Styles (Premiere Pro like) */
+body::-webkit-scrollbar {
+    width: 8px;
+    /* Thinner scrollbar */
+}
+
+body::-webkit-scrollbar-track {
+    background: var(--spectrum-global-color-gray-100);
+    /* Dark track */
+    border-radius: var(--spectrum-alias-border-radius-small);
+}
+
+body::-webkit-scrollbar-thumb {
+    background-color: var(--spectrum-global-color-gray-500);
+    /* Darker thumb */
+    border-radius: var(--spectrum-alias-border-radius-small);
+    border: 1px solid var(--spectrum-global-color-gray-100);
+    /* Border to match track for definition */
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background-color: var(--spectrum-global-color-gray-600);
+    /* Slightly lighter on hover */
+}
+
+/* Apply to textareas as well */
+textarea::-webkit-scrollbar {
+    width: 8px;
+}
+
+textarea::-webkit-scrollbar-track {
+    background: var(--spectrum-global-color-gray-100);
+    border-radius: var(--spectrum-alias-border-radius-small);
+    margin: 2px 0;
+    /* Small margin inside textarea */
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background-color: var(--spectrum-global-color-gray-500);
+    border-radius: var(--spectrum-alias-border-radius-small);
+    border: 1px solid var(--spectrum-global-color-gray-100);
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+    background-color: var(--spectrum-global-color-gray-600);
+}
+
+
+.panel-controls-container {
+    display: flex;
+    justify-content: flex-end;
+    /* Aligns button to the right */
+    padding-bottom: var(--spectrum-spacing-100);
+    border-bottom: 1px solid var(--spectrum-alias-border-dark);
+    margin-bottom: var(--spectrum-spacing-100);
 }
 
 #container {
     display: flex;
     flex-direction: column;
     gap: var(--spectrum-spacing-200);
+    flex-grow: 1;
+    /* Allows container to take remaining space if body has fixed height */
+    overflow-y: auto;
+    /* If individual sections need to scroll, this might be removed or adjusted */
 }
 
 .panel-title {
     font-size: var(--spectrum-global-font-size-300);
     font-weight: 300;
-    /* Spectrum titles are often lighter weight */
     margin-top: 0;
     margin-bottom: var(--spectrum-spacing-100);
     color: var(--spectrum-global-color-gray-900);
-    padding-bottom: var(--spectrum-spacing-50);
-    border-bottom: 1px solid var(--spectrum-alias-border-dark);
+    /* No border here, moved to panel-controls-container */
 }
 
 .section-container {
@@ -116,7 +181,6 @@ body.adobe-panel {
     margin-bottom: var(--spectrum-spacing-200);
     font-size: var(--spectrum-global-font-size-200);
     font-weight: normal;
-    /* Or 700 for bold, Spectrum varies */
     color: var(--spectrum-global-color-gray-800);
     border-bottom: 1px solid var(--spectrum-alias-border-dark);
     padding-bottom: var(--spectrum-spacing-100);
@@ -133,14 +197,12 @@ body.adobe-panel {
     font-size: var(--spectrum-global-font-size-75);
     color: var(--spectrum-global-color-gray-700);
     text-transform: uppercase;
-    /* Spectrum labels are often uppercase */
     letter-spacing: 0.5px;
 }
 
 .adobe-input,
 .adobe-textarea {
     background-color: var(--spectrum-global-color-gray-200);
-    /* Input bg darker than section */
     color: var(--spectrum-global-color-gray-800);
     border: 1px solid var(--spectrum-alias-border-mid);
     padding: var(--spectrum-spacing-50) var(--spectrum-spacing-100);
@@ -150,7 +212,6 @@ body.adobe-panel {
     box-sizing: border-box;
     line-height: 1.5;
     min-height: var(--spectrum-component-height-100);
-    /* Consistent height */
 }
 
 .adobe-input::placeholder {
@@ -161,7 +222,6 @@ body.adobe-panel {
 
 .adobe-textarea {
     min-height: calc(var(--spectrum-component-height-100) * 2);
-    /* Example: 2 lines high */
     resize: vertical;
 }
 
@@ -175,7 +235,6 @@ body.adobe-panel {
 .input-with-button {
     display: flex;
     align-items: stretch;
-    /* Ensures button and input are same height */
 }
 
 .input-with-button .adobe-input {
@@ -183,11 +242,9 @@ body.adobe-panel {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     border-right-width: 0;
-    /* Remove right border to merge with button */
     min-height: var(--spectrum-component-height-100);
 }
 
-/* General Button Style (intended for standalone, full-width buttons) */
 .adobe-button {
     background-color: var(--spectrum-global-color-gray-400);
     color: var(--spectrum-global-color-gray-900);
@@ -199,7 +256,6 @@ body.adobe-panel {
     text-align: center;
     transition: background-color 0.1s ease, border-color 0.1s ease;
     width: 100%;
-    /* Default to full width */
     box-sizing: border-box;
     margin-top: var(--spectrum-spacing-50);
     line-height: 1.5;
@@ -215,15 +271,13 @@ body.adobe-panel {
 
 .adobe-button:active {
     background-color: var(--spectrum-global-color-gray-300);
+    /* Lighter on active for visual feedback */
 }
 
 .adobe-button.primary-action {
-    /* CTA Button Style */
     background-color: var(--spectrum-global-color-blue-500);
     color: var(--spectrum-global-color-gray-50, white);
-    /* Text on blue */
     border-color: transparent;
-    /* Often no border on CTA */
 }
 
 .adobe-button.primary-action:hover {
@@ -234,6 +288,34 @@ body.adobe-panel {
     background-color: var(--spectrum-global-color-blue-700);
 }
 
+.adobe-button.secondary-action {
+    /* Style for less prominent actions like Reload */
+    background-color: var(--spectrum-global-color-gray-300);
+    color: var(--spectrum-global-color-gray-800);
+    border: 1px solid var(--spectrum-alias-border-mid);
+}
+
+.adobe-button.secondary-action:hover {
+    background-color: var(--spectrum-global-color-gray-400);
+}
+
+.adobe-button.secondary-action:active {
+    background-color: var(--spectrum-global-color-gray-200);
+}
+
+
+.adobe-button.small-button {
+    /* For smaller buttons like Reload */
+    min-height: var(--spectrum-component-height-75);
+    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-100);
+    font-size: var(--spectrum-global-font-size-75);
+    width: auto;
+    /* Allow button to size to content */
+    margin-top: 0;
+    /* Reset margin if used in specific contexts like panel-controls */
+}
+
+
 .adobe-button:disabled {
     background-color: var(--spectrum-global-color-gray-300);
     border-color: var(--spectrum-global-color-gray-400);
@@ -241,57 +323,35 @@ body.adobe-panel {
     cursor: default;
 }
 
-/* Browse Button Specific Styles (Overrides .adobe-button where necessary) */
 .browse-button {
-    /* Override width from .adobe-button */
     width: auto;
     min-width: 75px;
-    /* Sufficient for "Browse..." text + padding */
     flex-grow: 0;
-    /* Do not grow */
     flex-shrink: 0;
-    /* Do not shrink */
-
-    /* Override margin-top from .adobe-button as it's part of an input group */
     margin-top: 0;
-
-    /* Specific visual styles for browse button (can inherit or override adobe-button) */
     padding: var(--spectrum-spacing-50) var(--spectrum-spacing-100);
-    /* 4px 8px */
     font-size: var(--spectrum-global-font-size-75);
-    /* 11px */
     min-height: var(--spectrum-component-height-100);
-    /* Match input height */
     line-height: 1.5;
-    /* Match input line-height */
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
-    /* Ensure border visually merges with input */
     border: 1px solid var(--spectrum-alias-border-mid);
-    /* Match input border */
     border-left-width: 1px;
-    /* Explicitly set left border, input has right border removed */
-
-
-    /* Keep other desired properties from .adobe-button or define specifically */
     background-color: var(--spectrum-global-color-gray-400);
     color: var(--spectrum-global-color-gray-800);
     cursor: pointer;
     transition: background-color 0.1s ease, border-color 0.1s ease;
-    /* display, align-items, justify-content might not be needed if text-align: center is sufficient */
     text-align: center;
 }
 
 .browse-button:hover {
     background-color: var(--spectrum-global-color-gray-500);
     border-color: var(--spectrum-alias-border-mid);
-    /* Keep border consistent on hover */
 }
 
 .browse-button:active {
     background-color: var(--spectrum-global-color-gray-300);
     border-color: var(--spectrum-alias-border-mid);
-    /* Keep border consistent on active */
 }
 
 

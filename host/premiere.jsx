@@ -149,7 +149,7 @@ function importFilesToBin(sourceFolderPath, targetBin, fileTypeDescription, file
     $.writeln("ExtendScript: Attempting to import " + filesToImportPaths.length + " " + fileTypeDescription + " files: " + filesToImportPaths.join(", "));
 
     app.project.importFiles(filesToImportPaths, true, targetBin, false);
-    $.sleep(1500); // Increased sleep time for Premiere to process imports
+    $.sleep(1500);
 
     var importedFileMap = {};
     var currentBinItems = targetBin.children;
@@ -170,7 +170,6 @@ function importFilesToBin(sourceFolderPath, targetBin, fileTypeDescription, file
             }
         }
         if(wasInImportList){
-            // Use the original disk filename as the key for consistency with masterPlan
             importedFileMap[originalFileNameFromPathForMapKey] = item;
         }
     }
@@ -187,6 +186,10 @@ function importFilesToBin(sourceFolderPath, targetBin, fileTypeDescription, file
  * @returns {ProjectItem|null}
  */
 function findItemInBinByName(itemName, bin, itemTypeDescription) {
+    if (!itemName) { // Added check for null/empty itemName
+        // $.writeln("ExtendScript: findItemInBinByName - itemName is null or empty. Cannot search.");
+        return null;
+    }
     if (!bin || !bin.children) {
         $.writeln("Error: Cannot find " + (itemTypeDescription || "item") + " '" + itemName + "' in invalid bin: " + (bin ? bin.name : "null"));
         return null;
@@ -194,11 +197,9 @@ function findItemInBinByName(itemName, bin, itemTypeDescription) {
     for (var i = 0; i < bin.children.numItems; i++) {
         var item = bin.children[i];
         if (item.name === itemName) {
-            // $.writeln("ExtendScript: Found " + (itemTypeDescription || "item") + ": '" + itemName + "' in bin '" + bin.name + "'");
             return item;
         }
     }
-    // $.writeln("ExtendScript: Could not find " + (itemTypeDescription || "item") + ": '" + itemName + "' in bin '" + bin.name + "'");
     return null;
 }
 
@@ -404,7 +405,6 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
         $.writeln("ExtendScript: --- Starting Sequence Creation & Population Phase ---");
         var labelColors = [0, 2, 4, 6, 1, 3, 5, 7];
         var sequencesCreatedCount = 0;
-        var clipsAddedCount = 0;
 
         var sectionsToProcess = IS_TEST_MODE ? masterPlan.sections.slice(0, 1) : masterPlan.sections;
         if (IS_TEST_MODE) $.writeln("ExtendScript: TEST MODE - Will process up to 1 section for sequence creation.");
@@ -421,22 +421,13 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
                 sectionBin.setColorLabel(labelColors[sectionData.sectionIndex % labelColors.length]);
             }
 
-            var sectionIntroSlideItem = null;
-            if (sectionData.sectionIntroSlide) {
-                // Try finding by name in bin first, then check the map as a fallback
-                sectionIntroSlideItem = findItemInBinByName(sectionData.sectionIntroSlide, slidesBin, "Section Intro Slide");
-                if (!sectionIntroSlideItem && importedSlidesMap) {
-                    sectionIntroSlideItem = importedSlidesMap[sectionData.sectionIntroSlide];
-                }
-                 if (!sectionIntroSlideItem) {$.writeln("Warning: Section Intro Slide '" + sectionData.sectionIntroSlide + "' not found for section '" + sectionData.udemySectionTitle + "'");}
-            }
+            var firstVideoLessonInSectionProcessed = false; // Flag for this section
 
             var lessonsToProcess = IS_TEST_MODE ? sectionData.lessons.slice(0, 1) : sectionData.lessons;
              if (IS_TEST_MODE && sectionData.lessons.length > 0) $.writeln("ExtendScript: TEST MODE - Will process up to 1 lesson for sequence creation in section: " + sectionData.udemySectionTitle);
 
             for (var l = 0; l < lessonsToProcess.length; l++) {
                 var lessonData = lessonsToProcess[l];
-                var currentTimeInSequence = 0.0;
 
                 if (!lessonData.matchedVideoFile) {
                     $.writeln("ExtendScript: Lesson '" + lessonData.lessonTitle + "' has no matched video. Skipping sequence creation.");
@@ -447,103 +438,99 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
                 $.writeln("ExtendScript: Preparing sequence: '" + sequenceName + "' for bin: '" + sectionBin.name + "'");
 
                 if (findSequenceInBin(sectionBin, sequenceName)){
-                    $.writeln("ExtendScript: Sequence '" + sequenceName + "' already exists in bin. Skipping population.");
+                    $.writeln("ExtendScript: Sequence '" + sequenceName + "' already exists in bin. Skipping creation.");
                     continue;
                 }
 
-                if (!app.project.createNewSequence) {$.writeln("Error: app.project.createNewSequence is not a function."); continue;}
-                var newSequence = app.project.createNewSequence(sequenceName, "");
-                if (!newSequence) { $.writeln("Error: Failed to create sequence '" + sequenceName + "'."); continue; }
-                $.writeln("ExtendScript: Created sequence: '" + newSequence.name + "' (ID: " + newSequence.sequenceID + ").");
-                sequencesCreatedCount++;
+                var clipsForSequence = [];
 
-                if (newSequence.projectItem && typeof newSequence.projectItem.moveToBin === 'function') {
-                    newSequence.projectItem.moveToBin(sectionBin);
-                    $.writeln("ExtendScript: Sequence '" + newSequence.name + "' moved to bin '" + sectionBin.name + "'.");
-                } else {
-                    $.writeln("ExtendScript: WARNING - Could not move sequence '" + newSequence.name + "' to bin.");
-                }
-
-                // Populate Sequence Helper function
-                function addClipToTimeline(item, track, time, itemNameForLog) {
-                    if (item && item.type !== undefined && (item.type === PPRO_FILE_TYPE || item.type === PPRO_CLIP_TYPE)) {
-                        if (track.insertClip(item, time)) {
-                            $.writeln("ExtendScript: Added " + itemNameForLog + " '" + item.name + "' to sequence.");
-                            clipsAddedCount++;
-                            // Ensure getOutPoint and getInPoint are accessed safely
-                            var itemDuration = 0;
-                            if (item.getOutPoint && item.getInPoint) {
-                                var outPointSec = item.getOutPoint('media') ? item.getOutPoint('media').seconds : 0;
-                                var inPointSec = item.getInPoint('media') ? item.getInPoint('media').seconds : 0;
-                                itemDuration = outPointSec - inPointSec;
-                            }
-                            return itemDuration > 0 ? itemDuration : (item.type === PPRO_FILE_TYPE && /\.(tif|tiff|png|jpg|jpeg)$/i.test(item.name) ? 5.0 : 1.0); // Default 5s for stills, 1s for problematic video
-                        } else {
-                            $.writeln("Error: Failed to add " + itemNameForLog + " '" + item.name + "' to sequence. insertClip returned false.");
-                        }
-                    } else {
-                        var itemDetails = "undefined or null";
-                        if (item) itemDetails = "Name: " + item.name + ", Type: " + item.type;
-                        $.writeln("Warning: " + itemNameForLog + " '" + (item ? item.name : "N/A") + "' is not a valid ProjectItem or not found. Details: " + itemDetails);
+                // Add clips based on the new logic
+                if (!firstVideoLessonInSectionProcessed) {
+                    // This is the first lesson in this section that has a video.
+                    // Add Slide1 and Slide2 (which are stored in lessonData.blankSlide1/2 for the first lesson)
+                    if (lessonData.blankSlide1) {
+                        var blankSlide1Item = findItemInBinByName(lessonData.blankSlide1, slidesBin, "Blank Slide 1") || (importedSlidesMap ? importedSlidesMap[lessonData.blankSlide1] : null);
+                        if (blankSlide1Item && (blankSlide1Item.type === PPRO_FILE_TYPE || blankSlide1Item.type === PPRO_CLIP_TYPE)) {
+                            clipsForSequence.push(blankSlide1Item);
+                            $.writeln("ExtendScript: Added Blank Slide 1 '" + blankSlide1Item.name + "' to clip list.");
+                        } else { $.writeln("Warning: Blank Slide 1 '" + lessonData.blankSlide1 + "' not found or invalid for first video lesson."); }
                     }
-                    return 0; // Return 0 duration if not added or invalid
+                    if (lessonData.blankSlide2) {
+                        var blankSlide2Item = findItemInBinByName(lessonData.blankSlide2, slidesBin, "Blank Slide 2") || (importedSlidesMap ? importedSlidesMap[lessonData.blankSlide2] : null);
+                        if (blankSlide2Item && (blankSlide2Item.type === PPRO_FILE_TYPE || blankSlide2Item.type === PPRO_CLIP_TYPE)) {
+                            clipsForSequence.push(blankSlide2Item);
+                            $.writeln("ExtendScript: Added Blank Slide 2 '" + blankSlide2Item.name + "' to clip list.");
+                        } else { $.writeln("Warning: Blank Slide 2 '" + lessonData.blankSlide2 + "' not found or invalid for first video lesson."); }
+                    }
+
+                    // Add Section Intro Slide (if it exists for the section)
+                    if (sectionData.sectionIntroSlide) {
+                        var sectionIntroSlideItem = findItemInBinByName(sectionData.sectionIntroSlide, slidesBin, "Section Intro Slide") || (importedSlidesMap ? importedSlidesMap[sectionData.sectionIntroSlide] : null);
+                        if (sectionIntroSlideItem && (sectionIntroSlideItem.type === PPRO_FILE_TYPE || sectionIntroSlideItem.type === PPRO_CLIP_TYPE)) {
+                            clipsForSequence.push(sectionIntroSlideItem);
+                            $.writeln("ExtendScript: Added Section Intro Slide '" + sectionIntroSlideItem.name + "' to clip list.");
+                        } else {
+                            $.writeln("Warning: Section Intro Slide '" + sectionData.sectionIntroSlide + "' not found or invalid for sequence.");
+                        }
+                    }
+                    firstVideoLessonInSectionProcessed = true; // Mark that section-start slides have been added
                 }
 
-
-                // Populate Sequence
-                if (l === 0 && sectionIntroSlideItem) {
-                     currentTimeInSequence += addClipToTimeline(sectionIntroSlideItem, newSequence.videoTracks[0], currentTimeInSequence, "Section Intro Slide");
-                }
-
-                var blankSlide1Item = null;
-                if (lessonData.blankSlide1) {
-                    blankSlide1Item = findItemInBinByName(lessonData.blankSlide1, slidesBin, "Blank Slide 1") || (importedSlidesMap ? importedSlidesMap[lessonData.blankSlide1] : null);
-                    currentTimeInSequence += addClipToTimeline(blankSlide1Item, newSequence.videoTracks[0], currentTimeInSequence, "Blank Slide 1");
-                }
-
-                var blankSlide2Item = null;
-                if (lessonData.blankSlide2) {
-                    blankSlide2Item = findItemInBinByName(lessonData.blankSlide2, slidesBin, "Blank Slide 2") || (importedSlidesMap ? importedSlidesMap[lessonData.blankSlide2] : null);
-                    currentTimeInSequence += addClipToTimeline(blankSlide2Item, newSequence.videoTracks[0], currentTimeInSequence, "Blank Slide 2");
-                }
-
-                var lessonIntroSlideItem = null;
+                // Add Lesson Intro Slide
                 if (lessonData.lessonIntroSlide) {
-                    lessonIntroSlideItem = findItemInBinByName(lessonData.lessonIntroSlide, slidesBin, "Lesson Intro Slide") || (importedSlidesMap ? importedSlidesMap[lessonData.lessonIntroSlide] : null);
-                     currentTimeInSequence += addClipToTimeline(lessonIntroSlideItem, newSequence.videoTracks[0], currentTimeInSequence, "Lesson Intro Slide");
+                    var lessonIntroSlideItem = findItemInBinByName(lessonData.lessonIntroSlide, slidesBin, "Lesson Intro Slide") || (importedSlidesMap ? importedSlidesMap[lessonData.lessonIntroSlide] : null);
+                    if (lessonIntroSlideItem && (lessonIntroSlideItem.type === PPRO_FILE_TYPE || lessonIntroSlideItem.type === PPRO_CLIP_TYPE)) {
+                        clipsForSequence.push(lessonIntroSlideItem);
+                        $.writeln("ExtendScript: Added Lesson Intro Slide '" + lessonIntroSlideItem.name + "' to clip list.");
+                    } else { $.writeln("Warning: Lesson Intro Slide '" + lessonData.lessonIntroSlide + "' not found or invalid."); }
                 }
 
-                // Main Video Item
-                var videoItem = null;
-                if (lessonData.matchedVideoFile) {
-                    videoItem = findItemInBinByName(lessonData.matchedVideoFile, videosBin, "Matched Video") || (importedVideosMap ? importedVideosMap[lessonData.matchedVideoFile] : null);
+                // Add Matched Video File
+                var videoItem = findItemInBinByName(lessonData.matchedVideoFile, videosBin, "Matched Video") || (importedVideosMap ? importedVideosMap[lessonData.matchedVideoFile] : null);
+                if (videoItem && (videoItem.type === PPRO_FILE_TYPE || videoItem.type === PPRO_CLIP_TYPE) ) {
+                     $.writeln("ExtendScript: Video Item for sequence: Name: '" + videoItem.name + "', Type: " + videoItem.type);
+                    clipsForSequence.push(videoItem);
+                    $.writeln("ExtendScript: Added Matched Video '" + videoItem.name + "' to clip list.");
+                } else {
+                    var videoItemDetails = "not found or invalid type.";
+                    if(videoItem) videoItemDetails = "Name: " + videoItem.name + ", Type: " + videoItem.type;
+                    $.writeln("Error: Matched video file '" + lessonData.matchedVideoFile + "' ("+ videoItemDetails +") not suitable for sequence '" + lessonData.lessonTitle + "'. Skipping this video for this sequence.");
                 }
 
-                $.writeln("ExtendScript: Pre-insert video check. MatchedFile: '" + lessonData.matchedVideoFile + "'. Found videoItem: " + (videoItem ? "Exists" : "NULL/UNDEFINED"));
-                if (videoItem) {
-                    $.writeln("ExtendScript: videoItem.name: '" + videoItem.name + "', videoItem.type: " + videoItem.type + ", Can get media path: " + (typeof videoItem.getMediaPath === 'function'));
-                }
-                 $.writeln("ExtendScript: Target track: " + newSequence.videoTracks[0].name + ", Num video tracks: " + newSequence.videoTracks.numTracks);
-                 $.writeln("ExtendScript: currentTimeInSequence for video: " + currentTimeInSequence + " (type: " + typeof currentTimeInSequence + ")");
-
-                currentTimeInSequence += addClipToTimeline(videoItem, newSequence.videoTracks[0], currentTimeInSequence, "Matched Video");
-
-                var lessonOutroSlideItem = null;
+                // Add Lesson Outro Slide
                 if (lessonData.lessonOutroSlide) {
-                    lessonOutroSlideItem = findItemInBinByName(lessonData.lessonOutroSlide, slidesBin, "Lesson Outro Slide") || (importedSlidesMap ? importedSlidesMap[lessonData.lessonOutroSlide] : null);
-                    currentTimeInSequence += addClipToTimeline(lessonOutroSlideItem, newSequence.videoTracks[0], currentTimeInSequence, "Lesson Outro Slide");
+                    var lessonOutroSlideItem = findItemInBinByName(lessonData.lessonOutroSlide, slidesBin, "Lesson Outro Slide") || (importedSlidesMap ? importedSlidesMap[lessonData.lessonOutroSlide] : null);
+                    if (lessonOutroSlideItem && (lessonOutroSlideItem.type === PPRO_FILE_TYPE || lessonOutroSlideItem.type === PPRO_CLIP_TYPE)) {
+                        clipsForSequence.push(lessonOutroSlideItem);
+                        $.writeln("ExtendScript: Added Lesson Outro Slide '" + lessonOutroSlideItem.name + "' to clip list.");
+                    } else { $.writeln("Warning: Lesson Outro Slide '" + lessonData.lessonOutroSlide + "' not found or invalid."); }
                 }
 
-                 $.writeln("ExtendScript: Finished populating sequence: '" + newSequence.name + "'. Estimated total duration: " + currentTimeInSequence + "s");
+                // Create sequence from the collected clips
+                if (clipsForSequence.length > 0) {
+                    if (!app.project.createNewSequenceFromClips) {
+                        $.writeln("Error: app.project.createNewSequenceFromClips is not a function.");
+                        continue;
+                    }
+                    $.writeln("ExtendScript: Attempting to create sequence '" + sequenceName + "' with " + clipsForSequence.length + " clips.");
+                    var newSequence = app.project.createNewSequenceFromClips(sequenceName, clipsForSequence, sectionBin);
 
+                    if (newSequence) {
+                        $.writeln("ExtendScript: Successfully created sequence '" + newSequence.name + "' from clips in bin '" + sectionBin.name + "'.");
+                        sequencesCreatedCount++;
+                    } else {
+                        $.writeln("Error: Failed to create sequence '" + sequenceName + "' from clips. The method returned null or undefined.");
+                    }
+                } else {
+                    $.writeln("ExtendScript: No valid clips collected for lesson '" + lessonData.lessonTitle + "'. Skipping sequence creation.");
+                }
             }
         }
 
         return "Success: Processing finished. " +
                getObjectPropertyCount(importedVideosMap) + " videos mapped, " +
                getObjectPropertyCount(importedSlidesMap) + " slides mapped. " +
-               sequencesCreatedCount + " sequences created/updated. " +
-               clipsAddedCount + " clips added to sequences.";
+               sequencesCreatedCount + " sequences created using createNewSequenceFromClips.";
 
     } catch (e) {
         return "Error: EXCEPTION in processMasterPlanInPremiere: " + e.toString() + " (Line: " + e.line + ") Stack: " + $.stack;
