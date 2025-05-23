@@ -42,12 +42,6 @@
                             <Width>300</Width>
                         </Size>
                         </Geometry>
-                    <Icons>
-                        <Icon Type="Normal">./icons/icon_dark_panel.png</Icon>
-                        <Icon Type="RollOver">./icons/icon_dark_panel.png</Icon>
-                        <Icon Type="Disabled">./icons/icon_dark_panel.png</Icon> <Icon Type="DarkNormal">./icons/icon_light_panel.png</Icon>
-                        <Icon Type="DarkRollOver">./icons/icon_light_panel.png</Icon>
-                        <Icon Type="DarkDisabled">./icons/icon_light_panel.png</Icon> </Icons>
                 </UI>
             </DispatchInfo>
         </Extension>
