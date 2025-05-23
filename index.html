@@ -69,11 +69,15 @@
                 </div>
             </div>
             <button id="listLocalFilesButton" class="adobe-button button-full-width" style="margin-top: 5px;">List Local Video Files & Get Durations</button>
+            <div id="localFileProgressContainer" class="progress-container" style="display:none;">
+                <div id="localFileProgressBar" class="progress-bar"></div>
+            </div>
             <div id="localFileStatus" class="status-message" style="min-height: 20px;"></div>
 
             <hr style="border: none; border-top: 1px solid var(--spectrum-alias-border-dark); margin: var(--spectrum-spacing-200) 0;">
 
             <button id="validateAndPlanButton" class="adobe-button primary-action button-full-width">Validate Slides & Generate Master Plan</button>
+            <button id="regeneratePlanButton" class="adobe-button secondary-action button-full-width" style="display:none; margin-top: 10px;">Confirm Slides Removed & Regenerate Plan</button>
             <div id="planStatus" class="status-message" style="min-height: 20px;"></div>
 
             <h3 class="sub-heading" style="margin-top:var(--spectrum-spacing-200);">Scraped Udemy Course Structure (Raw):</h3>
@@ -81,6 +85,10 @@
 
             <h3 class="sub-heading">Local Video Files Found (Raw):</h3>
             <textarea id="localVideoFilesDisplay" class="adobe-textarea" rows="3" readonly></textarea>
+
+            <h3 class="sub-heading" style="margin-top:var(--spectrum-spacing-100);">Unmatched Local Video Files:</h3>
+            <textarea id="unmatchedVideosDisplay" class="adobe-textarea" rows="3" readonly style="background-color: var(--spectrum-global-color-gray-250); border-color: var(--spectrum-semantic-notice-color-default);"></textarea>
+
 
             <h3 class="sub-heading">Generated Master Plan (JSON Preview):</h3>
             <textarea id="masterPlanDisplay" class="adobe-textarea" rows="8" readonly></textarea>

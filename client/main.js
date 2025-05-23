@@ -23,34 +23,70 @@ window.onload = function() {
           "lessonIndexInSection": 2,
           "blankSlide1": "Slide1.TIF",
           "blankSlide2": "Slide2.TIF",
-          "lessonIntroSlide": "Slide3.TIF",
+          "lessonIntroSlide": "Slide4.TIF",
           "matchedVideoFile": "SEC-T01-P01.mp4",
-          "lessonOutroSlide": "Slide4.TIF",
+          "lessonOutroSlide": "Slide5.TIF",
           "globalLessonIndex": 0
-        }
-      ]
-    },
-    {
-      "udemySectionTitle": "Introdução à Análise de Tráfego e Wireshark",
-      "sectionIndex": 1,
-      "sectionIntroSlide": "Slide56.TIF",
-      "lessons": [
+        },
         {
-          "lessonTitle": "Análise de Tráfego, por onde começar?",
-          "udemyDuration": "15:34",
-          "lessonIndexInSection": 2,
-          "blankSlide1": "Slide1.TIF",
-          "blankSlide2": "Slide2.TIF",
-          "lessonIntroSlide": "Slide22.TIF",
-          "matchedVideoFile": "SEC-T02-P01.mp4",
-          "lessonOutroSlide": "Slide23.TIF",
-          "globalLessonIndex": 9
+          "lessonTitle": "Preparação do laboratório e requisitos",
+          "udemyDuration": "02:22",
+          "lessonIndexInSection": 4,
+          "blankSlide1": null,
+          "blankSlide2": null,
+          "lessonIntroSlide": "Slide6.TIF",
+          "matchedVideoFile": "SEC-T01-P02.mp4",
+          "lessonOutroSlide": "Slide7.TIF",
+          "globalLessonIndex": 1
+        },
+        {
+          "lessonTitle": "Preparação do ambiente de laboratório (VM Kali Linux)",
+          "udemyDuration": "12:24",
+          "lessonIndexInSection": 6,
+          "blankSlide1": null,
+          "blankSlide2": null,
+          "lessonIntroSlide": "Slide8.TIF",
+          "matchedVideoFile": "SEC-T01-P04.mp4",
+          "lessonOutroSlide": "Slide9.TIF",
+          "globalLessonIndex": 2
+        },
+        {
+          "lessonTitle": "Preparação do ambiente de laboratório (VM Windows)",
+          "udemyDuration": "09:20",
+          "lessonIndexInSection": 7,
+          "blankSlide1": null,
+          "blankSlide2": null,
+          "lessonIntroSlide": "Slide10.TIF",
+          "matchedVideoFile": "SEC-T01-P05.mp4",
+          "lessonOutroSlide": "Slide11.TIF",
+          "globalLessonIndex": 3
+        },
+        {
+          "lessonTitle": "Desativando Firewall e AV na VM do Windows 10",
+          "udemyDuration": "03:16",
+          "lessonIndexInSection": 10,
+          "blankSlide1": null,
+          "blankSlide2": null,
+          "lessonIntroSlide": "Slide12.TIF",
+          "matchedVideoFile": "SEC-T01-P06.mp4",
+          "lessonOutroSlide": "Slide13.TIF",
+          "globalLessonIndex": 4
+        },
+        {
+          "lessonTitle": "Compartilhando arquivos com a VM",
+          "udemyDuration": "03:54",
+          "lessonIndexInSection": 11,
+          "blankSlide1": null,
+          "blankSlide2": null,
+          "lessonIntroSlide": "Slide14.TIF",
+          "matchedVideoFile": "SEC-T01-P07.mp4",
+          "lessonOutroSlide": "Slide15.TIF",
+          "globalLessonIndex": 5
         }
       ]
     }
   ]
-}`;
-
+}`; // Note: lessonIndexInSection is now 1-based for the first matched lesson in test JSON.
 
     // --- Theme Detection ---
     function onAppThemeColorChanged(event) {
@@ -98,9 +134,13 @@ window.onload = function() {
     var slidePathInput = document.getElementById('slidePathInput');
     var browseSlidePathButton = document.getElementById('browseSlidePathButton');
     var listLocalFilesButton = document.getElementById('listLocalFilesButton');
+    var localFileProgressContainer = document.getElementById('localFileProgressContainer');
+    var localFileProgressBar = document.getElementById('localFileProgressBar');
     var localFileStatus = document.getElementById('localFileStatus');
     var localVideoFilesDisplay = document.getElementById('localVideoFilesDisplay');
+    var unmatchedVideosDisplay = document.getElementById('unmatchedVideosDisplay');
     var validateAndPlanButton = document.getElementById('validateAndPlanButton');
+    var regeneratePlanButton = document.getElementById('regeneratePlanButton');
     var planStatus = document.getElementById('planStatus');
     var masterPlanDisplay = document.getElementById('masterPlanDisplay');
     var generatePremiereProjectButton = document.getElementById('generatePremiereProjectButton');
@@ -116,19 +156,33 @@ window.onload = function() {
     let currentCourseName = "";
     let currentBaseDirectory = "";
     let currentMasterPlanPath = "";
+    let udemyLessonsForMatchingGlobal = [];
 
 
     // --- Helper Functions ---
-    function updateStatus(element, message, type, isPermanent) {
+    function updateStatus(element, message, type, isPermanent, append) {
         if (!element) { console.warn("updateStatus called with null element for message:", message); return; }
         let displayMessage = message;
         if (typeof message === 'string') {
             displayMessage = message.replace(/^Success:/i, '').replace(/^Error:/i, '').trim();
         }
-        element.textContent = displayMessage;
-        element.className = 'status-message';
-        if (type) { element.classList.add(type); }
-        element.style.display = displayMessage ? 'block' : 'none';
+
+        if (append && element.textContent.trim() !== "") {
+            element.textContent += "\n" + displayMessage;
+        } else {
+            element.textContent = displayMessage;
+        }
+
+        if (type) {
+            element.className = 'status-message ' + type;
+        } else {
+            element.className = 'status-message';
+            if (element.textContent.toLowerCase().includes("error")) element.classList.add('error');
+            else if (element.textContent.toLowerCase().includes("warning")) element.classList.add('info');
+            else if (element.textContent.toLowerCase().includes("success")) element.classList.add('success');
+        }
+
+        element.style.display = element.textContent.trim() ? 'block' : 'none';
     }
 
     function escapeString(str) {
@@ -156,16 +210,15 @@ window.onload = function() {
         return isNaN(seconds) ? 0 : Math.round(seconds);
     }
 
-    function fetchVideoDurationPromise(videoFilePath, videoFileNameForLog) {
+    function fetchVideoDurationPromise(videoFilePath, videoFileNameForLog, progressCallback) {
         return new Promise((resolve, reject) => {
             const extensionBasePath = getExtensionBasePath();
             const durationScriptPath = path.join(extensionBasePath, 'scripts', 'get_video_duration.js');
-            console.log(`Fetching duration for: ${videoFileNameForLog} at ${videoFilePath}`);
-            console.log(`Using duration script: ${durationScriptPath}`);
 
             if (!fs.existsSync(durationScriptPath)) {
                 const errMsg = `Duration script not found at ${durationScriptPath}`;
                 console.error(errMsg);
+                if (progressCallback) progressCallback(false);
                 return reject(new Error(errMsg));
             }
 
@@ -181,36 +234,34 @@ window.onload = function() {
             });
 
             process.on('close', (code) => {
-                console.log(`Duration script for ${videoFileNameForLog} exited with code ${code}.`);
-                if (errorOutput) console.error(`Duration script stderr for ${videoFileNameForLog}: ${errorOutput}`);
-                if (durationOutput) console.log(`Duration script stdout for ${videoFileNameForLog}: ${durationOutput}`);
-
                 if (code === 0 && durationOutput) {
                     const duration = parseFloat(durationOutput);
                     if (!isNaN(duration)) {
                         const roundedDuration = Math.round(duration);
-                        console.log(`Successfully parsed & rounded duration for ${videoFileNameForLog}: ${roundedDuration}s (original: ${duration})`);
+                        if (progressCallback) progressCallback(true);
                         resolve(roundedDuration);
                     } else {
                         const errMsg = `Could not parse duration for ${videoFileNameForLog} from script output: '${durationOutput}'. Stderr: '${errorOutput}'`;
                         console.error(errMsg);
+                        if (progressCallback) progressCallback(false);
                         reject(new Error(errMsg));
                     }
                 } else {
                     const errMsg = `Duration script for ${videoFileNameForLog} failed (code ${code}). Stderr: '${errorOutput}'. Stdout: '${durationOutput}'`;
                     console.error(errMsg);
+                    if (progressCallback) progressCallback(false);
                     reject(new Error(errMsg));
                 }
             });
             process.on('error', (err) => {
                 const errMsg = `Failed to start duration script for ${videoFileNameForLog}: ${err.message}`;
                 console.error(errMsg, err);
+                if (progressCallback) progressCallback(false);
                 reject(new Error(errMsg));
             });
         });
     }
 
-    // Kept for potential future use, but not used in current matching logic.
     function levenshteinDistance(a = "", b = "") {
         if (a.length === 0) return b.length;
         if (b.length === 0) return a.length;
@@ -401,29 +452,47 @@ window.onload = function() {
                 updateStatus(localFileStatus, "Please specify the Raw Video Path.", "error"); return;
             }
             updateStatus(localFileStatus, "Listing video files and fetching actual durations...", "info");
-            localVideoFilesDisplay.value = "Processing... This may take some time for many videos.";
+            localVideoFilesDisplay.value = "Processing...";
+            unmatchedVideosDisplay.value = "";
             currentLocalVideoFiles = [];
             localVideoDetails = [];
 
+            if (localFileProgressContainer) localFileProgressContainer.style.display = 'block';
+            if (localFileProgressBar) localFileProgressBar.style.width = '0%';
+
+
             try {
                 if (!fs.existsSync(rawVideoPath) || !fs.statSync(rawVideoPath).isDirectory()) {
-                    updateStatus(localFileStatus, "Error: Raw Video Path does not exist or is not a directory.", "error"); return;
+                    updateStatus(localFileStatus, "Error: Raw Video Path does not exist or is not a directory.", "error");
+                    if (localFileProgressContainer) localFileProgressContainer.style.display = 'none';
+                    return;
                 }
                 const files = fs.readdirSync(rawVideoPath);
                 currentLocalVideoFiles = files.filter(file => /\.(mp4|mov|avi|mkv|flv|wmv|mpg|mpeg|m4v)$/i.test(file));
 
                 if (currentLocalVideoFiles.length > 0) {
+                    let processedCount = 0;
+                    const totalFiles = currentLocalVideoFiles.length;
+
+                    const updateProgress = () => {
+                        processedCount++;
+                        const percentage = Math.round((processedCount / totalFiles) * 100);
+                        if (localFileProgressBar) localFileProgressBar.style.width = percentage + '%';
+                        updateStatus(localFileStatus, `Processing durations: ${processedCount} of ${totalFiles}...`, "info");
+                    };
+
                     const durationPromises = currentLocalVideoFiles.map(fileName => {
                         const filePath = path.join(rawVideoPath, fileName);
-                        return fetchVideoDurationPromise(filePath, fileName)
+                        return fetchVideoDurationPromise(filePath, fileName, updateProgress)
                             .then(durationSeconds => ({
                                 fileName: fileName,
-                                durationSeconds: durationSeconds - 1, // Adjusted for compensation
+                                durationSeconds: durationSeconds,
                                 isMatched: false,
                                 error: null
                             }))
                             .catch(error => {
                                 console.error(`Error processing duration for ${fileName}: ${error.message}`);
+                                updateProgress();
                                 return {
                                     fileName: fileName,
                                     durationSeconds: 0,
@@ -435,7 +504,6 @@ window.onload = function() {
 
                     localVideoDetails = await Promise.all(durationPromises);
                     localVideoDetails.sort((a, b) => a.fileName.localeCompare(b.fileName));
-
 
                     let displayTexts = localVideoDetails.map(detail => {
                         if (detail.error) {
@@ -457,10 +525,12 @@ window.onload = function() {
                 } else {
                     localVideoFilesDisplay.value = "No video files found.";
                     updateStatus(localFileStatus, "No video files found in the specified directory.", "info");
+                    if (localFileProgressContainer) localFileProgressContainer.style.display = 'none';
                 }
             } catch (err) {
                 updateStatus(localFileStatus, `Error listing local files or processing durations: ${err.message}`, "error");
                 console.error("Error in listLocalFilesButton.onclick:", err);
+                if (localFileProgressContainer) localFileProgressContainer.style.display = 'none';
             }
         };
     }
@@ -483,75 +553,39 @@ window.onload = function() {
         };
     }
 
-    // --- Phase 2: Validate Slides & Generate Master Plan ---
-    if (validateAndPlanButton) {
-        validateAndPlanButton.onclick = function() {
-            updateStatus(planStatus, "Starting validation and planning...", "info");
-            masterPlanDisplay.value = "";
-            currentMasterPlanPath = "";
 
-            if (IS_CLIENT_TEST_MODE) {
-                console.log("CLIENT TEST MODE: Populating Master Plan with hardcoded test data.");
-                updateStatus(planStatus, "CLIENT TEST MODE: Loading predefined Master Plan...", "info");
-                masterPlanDisplay.value = hardcodedTestMasterPlanJsonString;
+    // --- Function to perform the core plan generation logic ---
+    function generatePlanLogic(isRegenerating) {
+        let planMessages = [];
 
-                try {
-                    const testPlanObject = JSON.parse(hardcodedTestMasterPlanJsonString);
-                    if (!testPlanObject.premiereProjectFile) {
-                         updateStatus(planStatus, "CLIENT TEST MODE Error: Test JSON is missing 'premiereProjectFile'.", "error", true);
-                         generatePremiereProjectButton.disabled = true;
-                         return;
-                    }
-                    if (!currentCourseName || !currentBaseDirectory) {
-                        if (testPlanObject.courseTitle && baseDirectoryInput.value.trim()) {
-                            courseNameInput.value = testPlanObject.courseTitle;
-                            currentCourseName = testPlanObject.courseTitle;
-                            const safeCourseNameForPath = currentCourseName.replace(/[^\w\s\-\.]/g, '_').replace(/\s+/g, '_').replace(/[\.]+$/, '');
-                            currentBaseDirectory = path.join(baseDirectoryInput.value.trim(), safeCourseNameForPath).replace(/\\/g, '/');
-                            rawVideoPathInput.value = testPlanObject.baseVideoPath || path.join(currentBaseDirectory, "_01_RAW_VIDEOS").replace(/\\/g, '/');
-                            slidePathInput.value = testPlanObject.baseSlidePath || path.join(currentBaseDirectory, "_02_SLIDES").replace(/\\/g, '/');
-                            console.log("CLIENT TEST MODE: Inferred course name and base directory from test JSON.");
-                        } else if (!currentCourseName || !currentBaseDirectory) {
-                             updateStatus(planStatus, "CLIENT TEST MODE Error: Course Name or Base Directory not set (from Step 1 or test JSON). Please complete Step 1 or ensure test JSON has courseTitle.", "error", true);
-                             generatePremiereProjectButton.disabled = true;
-                             return;
-                        }
-                    }
-                    currentMasterPlanPath = "CLIENT_TEST_MODE_PLAN_LOADED";
-                    updateStatus(planStatus, "CLIENT TEST MODE: Predefined Master Plan loaded. Ready for Step 3.", "success", true);
-                    generatePremiereProjectButton.disabled = false;
-                } catch (e) {
-                    updateStatus(planStatus, `CLIENT TEST MODE Error: Invalid test JSON: ${e.message}`, "error", true);
-                    generatePremiereProjectButton.disabled = true;
-                }
-                return;
-            }
+        masterPlanDisplay.value = "";
+        currentMasterPlanPath = "";
+        if(unmatchedVideosDisplay) unmatchedVideosDisplay.value = "";
+        if(regeneratePlanButton) regeneratePlanButton.style.display = 'none';
 
+        if (!currentUdemyData || !currentUdemyData.sections) {
+            updateStatus(planStatus, "Error: Udemy course data not fetched or is invalid.", "error", true); return false;
+        }
+        if (currentLocalVideoFiles.length > 0 && localVideoDetails.length === 0) {
+             updateStatus(planStatus, "Error: Local video files listed, but durations not processed. Click 'List Local Video Files' again.", "error", true); return false;
+        }
+        if (!slidePathInput.value.trim()) {
+            updateStatus(planStatus, "Error: Slide path not specified.", "error", true); return false;
+        }
+         if (!rawVideoPathInput.value.trim() && localVideoDetails.length > 0) {
+            updateStatus(planStatus, "Error: Raw video path not specified (needed if local videos are present).", "error", true); return false;
+        }
+        if (!currentCourseName || !currentBaseDirectory) {
+            updateStatus(planStatus, "Error: Course Name or Base Directory for the course not set (from Step 1). Please complete Step 1.", "error", true); return false;
+        }
 
-            // --- Normal Plan Generation Logic (if not IS_CLIENT_TEST_MODE) ---
-            if (!currentUdemyData || !currentUdemyData.sections) {
-                updateStatus(planStatus, "Error: Udemy course data not fetched or is invalid.", "error"); return;
-            }
-            if (currentLocalVideoFiles.length > 0 && localVideoDetails.length === 0) {
-                 updateStatus(planStatus, "Error: Local video files listed, but durations not processed. Click 'List Local Video Files' again.", "error"); return;
-            }
-            if (!slidePathInput.value.trim()) {
-                updateStatus(planStatus, "Error: Slide path not specified.", "error"); return;
-            }
-             if (!rawVideoPathInput.value.trim() && localVideoDetails.length > 0) {
-                updateStatus(planStatus, "Error: Raw video path not specified (needed if local videos are present).", "error"); return;
-            }
-            if (!currentCourseName || !currentBaseDirectory) {
-                updateStatus(planStatus, "Error: Course Name or Base Directory for the course not set (from Step 1). Please complete Step 1.", "error"); return;
-            }
+        const slidesPath = slidePathInput.value.trim();
 
-
-            const slidesPath = slidePathInput.value.trim();
-
-            let udemyLessonsForMatching = [];
+        if (!isRegenerating || !udemyLessonsForMatchingGlobal || udemyLessonsForMatchingGlobal.length === 0) {
+            udemyLessonsForMatchingGlobal = [];
             currentUdemyData.sections.forEach((section, sectionIdx) => {
                 section.lessons.forEach((lesson, lessonIdx_actual) => {
-                    udemyLessonsForMatching.push({
+                    udemyLessonsForMatchingGlobal.push({
                         udemyTitle: lesson.lessonTitle,
                         udemyDurationSeconds: parseUdemyDurationToSeconds(lesson.duration),
                         originalSectionIndex: sectionIdx,
@@ -564,229 +598,293 @@ window.onload = function() {
                 });
             });
 
-            const DURATION_TOLERANCE_SECONDS = 0;   // Exact match required AFTER compensation
             let successfulMatches = 0;
-            let availableLocalVideos = localVideoDetails.map(v => ({ ...v, isMatched: false }));
+            localVideoDetails.forEach(video => video.isMatched = false);
 
-            console.log("--- Starting Video Matching Process  ---");
-            udemyLessonsForMatching.forEach(udemyLesson => {
+            console.log("--- Starting Video Matching Process (Revised Logic) ---");
+            udemyLessonsForMatchingGlobal.forEach(udemyLesson => {
                 if (udemyLesson.isMatched) return;
-
                 let bestMatch = null;
-                // Since tolerance is 0, smallestAbsDiff will effectively be 0 if a match is found.
-                // We just need to find *a* match, the first one encountered will do if multiple have 0 diff.
-                // let smallestAbsDiff = Infinity; // Not strictly needed if tolerance is 0
-
-                console.log(`Attempting to match Udemy Lesson: "${udemyLesson.udemyTitle}" (Udemy Duration: ${udemyLesson.udemyDurationSeconds}s)`);
-
-                for (let i = 0; i < availableLocalVideos.length; i++) {
-                    const localVideo = availableLocalVideos[i];
+                for (let i = 0; i < localVideoDetails.length; i++) {
+                    const localVideo = localVideoDetails[i];
                     if (localVideo.isMatched || localVideo.durationSeconds === 0 || localVideo.error) continue;
-
-                    const absDurationDiff = Math.abs(udemyLesson.udemyDurationSeconds - localVideo.durationSeconds);
-                    console.log(`  Comparing with Local Video: "${localVideo.fileName}" (Local Raw: ${localVideo.durationSeconds}s, -> Abs Diff: ${absDurationDiff}s`);
-
-                    if (absDurationDiff <= DURATION_TOLERANCE_SECONDS) { // This will be true only if absDurationDiff is 0
+                    const exactMatch = (udemyLesson.udemyDurationSeconds === localVideo.durationSeconds);
+                    const compensatedMatch = (udemyLesson.udemyDurationSeconds === (localVideo.durationSeconds - 1));
+                    if (exactMatch || compensatedMatch) {
                         bestMatch = localVideo;
-                        console.log(`    MATCH FOUND: ${localVideo.fileName} (Abs Diff: ${absDurationDiff}s)`);
-                        break; // Found an exact match, no need to check further for this Udemy lesson
+                        break;
                     }
                 }
-
                 if (bestMatch) {
                     udemyLesson.matchedLocalFile = bestMatch.fileName;
-                    // Mark the chosen local video as matched in the availableLocalVideos array
-                    const matchedVideoInAvailable = availableLocalVideos.find(v => v.fileName === bestMatch.fileName);
-                    if(matchedVideoInAvailable) matchedVideoInAvailable.isMatched = true;
-
+                    const originalLocalVideoEntry = localVideoDetails.find(v => v.fileName === bestMatch.fileName);
+                    if (originalLocalVideoEntry) {
+                        originalLocalVideoEntry.isMatched = true;
+                    }
                     successfulMatches++;
-                    console.log(`  MATCHED: Udemy "${udemyLesson.udemyTitle}" with Local "${bestMatch.fileName}"`);
-                } else {
-                    console.log(`  NO EXACT MATCH for Udemy "${udemyLesson.udemyTitle}" (Target Duration with compensation: ${udemyLesson.udemyDurationSeconds}s)`);
                 }
             });
             console.log("--- Video Matching Process Ended ---");
-            updateStatus(planStatus, `Video Matching: ${successfulMatches} of ${udemyLessonsForMatching.length} Udemy lessons matched.`, "info");
+            planMessages.push({text: `Video Matching: ${successfulMatches} of ${udemyLessonsForMatchingGlobal.length} Udemy lessons matched.`, type: "info"});
+        } else {
+            planMessages.push({text: "Re-using previous video matching results.", type: "info"});
+        }
 
 
-            const sectionsWithMatchedVideosCount = currentUdemyData.sections.filter((section, sectionIdx) =>
-                udemyLessonsForMatching.some(ul => ul.originalSectionIndex === sectionIdx && ul.matchedLocalFile)
-            ).length;
-            const numMatchedLocalVideos = udemyLessonsForMatching.filter(ul => ul.matchedLocalFile).length;
+        const unmatchedLocalFilesList = localVideoDetails
+            .filter(video => !video.isMatched && !video.error)
+            .map(video => `${video.fileName} (${Math.floor(video.durationSeconds / 60)}m ${Math.round(video.durationSeconds % 60)}s)`);
 
-            const numSequentialSlidesNeeded = sectionsWithMatchedVideosCount + (numMatchedLocalVideos * 2);
+        if (unmatchedVideosDisplay) {
+            if (unmatchedLocalFilesList.length > 0) {
+                unmatchedVideosDisplay.value = "The following local videos were not matched to any Udemy lesson:\n" + unmatchedLocalFilesList.join('\n');
+                planMessages.push({
+                    text: "WARNING: Some local videos were unmatched. Please review the 'Unmatched Local Video Files' list. If these unmatched videos had corresponding slides (e.g., SlideX.TIF, SlideY.TIF), you should MANUALLY REMOVE those specific slides from your '_02_SLIDES' directory to prevent them from being incorrectly used in sequences for the matched videos.",
+                    type: "info"
+                });
+                if (regeneratePlanButton) regeneratePlanButton.style.display = 'block';
+            } else {
+                unmatchedVideosDisplay.value = "All local videos (without errors during duration fetching) were successfully matched.";
+                if (regeneratePlanButton) regeneratePlanButton.style.display = 'none';
+            }
+        }
 
-            const maxRequiredSlideNumberToValidate = (numMatchedLocalVideos > 0 || sectionsWithMatchedVideosCount > 0)
-                ? (2 + numSequentialSlidesNeeded)
-                : 0;
+        const sectionsWithMatchedVideosCount = currentUdemyData.sections.filter((section, sectionIdx) =>
+            udemyLessonsForMatchingGlobal.some(ul => ul.originalSectionIndex === sectionIdx && ul.matchedLocalFile)
+        ).length;
+        const numMatchedLocalVideos = udemyLessonsForMatchingGlobal.filter(ul => ul.matchedLocalFile).length;
+        const numSequentialSlidesNeeded = sectionsWithMatchedVideosCount + (numMatchedLocalVideos * 2);
+        const maxExpectedSlideNumber = (numMatchedLocalVideos > 0 || sectionsWithMatchedVideosCount > 0)
+            ? (2 + numSequentialSlidesNeeded)
+            : 0;
 
-            updateStatus(planStatus, (planStatus.textContent ? planStatus.textContent + "\n" : "") +
-                `Slide Calculation: Validating Slide1, Slide2 (if needed) and ${numSequentialSlidesNeeded} sequential slides (Slide3 to Slide${2 + numSequentialSlidesNeeded}). Total to check: ${maxRequiredSlideNumberToValidate}`, "info");
+        planMessages.push({text: `Slide Scan: Expecting up to Slide${maxExpectedSlideNumber} if all were present. Scanning available slides...`, type: "info"});
 
+        let missingEssentialSlides = [];
+        let foundSlidesMapping = {};
+        let availableSequentialSlideFiles = []; // For "shifting" slides
 
-            let missingSlides = [];
-            let foundSlidesMapping = {};
+        try {
+            if (maxExpectedSlideNumber > 0) {
+                if (!fs.existsSync(slidesPath) || !fs.statSync(slidesPath).isDirectory()) {
+                    planMessages.push({text: `Error: Slides directory not found: ${slidesPath}`, type: "error"});
+                    updateStatus(planStatus, planMessages.map(m => m.text).join("\n"), 'error', true);
+                    return false;
+                }
+                const slideFilesOnDisk = fs.readdirSync(slidesPath);
 
-            try {
-                if (maxRequiredSlideNumberToValidate > 0) {
-                    if (!fs.existsSync(slidesPath) || !fs.statSync(slidesPath).isDirectory()) {
-                        updateStatus(planStatus, `Error: Slides directory not found: ${slidesPath}`, "error"); return;
-                    }
-                    const slideFilesOnDisk = fs.readdirSync(slidesPath);
-
-                    if (numMatchedLocalVideos > 0 || sectionsWithMatchedVideosCount > 0) {
-                        for (let i = 1; i <= 2; i++) {
-                            const slideRegex = new RegExp(`^slide\\s*${i}\\.(tif|tiff|png|jpg|jpeg)$`, 'i');
-                            const foundFile = slideFilesOnDisk.find(f => slideRegex.test(f));
-                            if (foundFile) {
-                                foundSlidesMapping["Slide" + i] = foundFile;
-                            } else {
-                                missingSlides.push(`Slide${i}.tiff (or .tif, .png, .jpg, .jpeg)`);
-                            }
-                        }
-                    }
-
-                    for (let i = 1; i <= numSequentialSlidesNeeded; i++) {
-                        const expectedSlideNumberInSequence = i + 2;
-                        const slideRegex = new RegExp(`^slide\\s*${expectedSlideNumberInSequence}\\.(tif|tiff|png|jpg|jpeg)$`, 'i');
+                if (numMatchedLocalVideos > 0 || sectionsWithMatchedVideosCount > 0) {
+                    for (let i = 1; i <= 2; i++) {
+                        const slideRegex = new RegExp(`^slide\\s*${i}\\.(tif|tiff|png|jpg|jpeg)$`, 'i');
                         const foundFile = slideFilesOnDisk.find(f => slideRegex.test(f));
                         if (foundFile) {
-                            foundSlidesMapping["Slide" + expectedSlideNumberInSequence] = foundFile;
+                            foundSlidesMapping["Slide" + i] = foundFile;
                         } else {
-                            missingSlides.push(`Slide${expectedSlideNumberInSequence}.tiff (or .tif, .png, .jpg, .jpeg)`);
+                            missingEssentialSlides.push(`Slide${i}.tiff (or variant)`);
                         }
                     }
                 }
-            } catch (e) {
-                updateStatus(planStatus, `Error reading slides directory: ${e.message}`, "error"); return;
+
+                // Populate foundSlidesMapping for all sequential slides that exist
+                // And create the availableSequentialSlideFiles list
+                for (let i = 3; i <= maxExpectedSlideNumber; i++) {
+                    const slideRegex = new RegExp(`^slide\\s*${i}\\.(tif|tiff|png|jpg|jpeg)$`, 'i');
+                    const foundFile = slideFilesOnDisk.find(f => slideRegex.test(f));
+                    if (foundFile) {
+                        foundSlidesMapping["Slide" + i] = foundFile; // Keep this for direct access if needed
+                        availableSequentialSlideFiles.push(foundFile); // Add to the ordered list of available
+                    }
+                }
+                // Note: availableSequentialSlideFiles will be naturally sorted if slideFilesOnDisk was,
+                // or if we sort it based on the number extracted from the filename.
+                // For simplicity, let's assume they are processed in a way that keeps order,
+                // or sort them explicitly if needed:
+                availableSequentialSlideFiles.sort((a, b) => {
+                    const numA = parseInt(a.match(/slide\s*(\d+)/i)[1], 10);
+                    const numB = parseInt(b.match(/slide\s*(\d+)/i)[1], 10);
+                    return numA - numB;
+                });
+
+
+            }
+        } catch (e) {
+            planMessages.push({text: `Error reading slides directory: ${e.message}`, type: "error"});
+            updateStatus(planStatus, planMessages.map(m => m.text).join("\n"), 'error', true);
+            return false;
+        }
+
+        if (missingEssentialSlides.length > 0) {
+            let missingMsg = missingEssentialSlides.join(', ');
+            planMessages.push({text: `Error: Essential slides missing: ${missingMsg}. These are required if any videos are being processed.`, type: "error"});
+            generatePremiereProjectButton.disabled = true;
+            updateStatus(planStatus, planMessages.map(m => m.text).join("\n"), 'error', true);
+            return false;
+        }
+
+        planMessages.push({text: `Slide Validation: All essential slides found. ${availableSequentialSlideFiles.length} sequential slides available for assignment. Generating Master Plan...`, type: "success"});
+
+        let masterPlan = {
+            courseTitle: currentUdemyData.courseTitle || currentCourseName,
+            baseVideoPath: rawVideoPathInput.value.trim(),
+            baseSlidePath: slidesPath,
+            projectDataPath: path.join(currentBaseDirectory, "_03_PROJECT_DATA").replace(/\\/g, '/'),
+            premiereProjectFile: path.join(currentBaseDirectory, "_04_PREMIERE_PROJECTS", currentCourseName.replace(/[^\w\s\-\.]/g, '_').replace(/\s+/g, '_').replace(/[\.]+$/, '') + ".prproj").replace(/\\/g, '/'),
+            sections: []
+        };
+
+        let currentAvailableSlideIdx = 0; // Index for availableSequentialSlideFiles
+        const getNextAvailableSequentialSlide = () => {
+            if (currentAvailableSlideIdx < availableSequentialSlideFiles.length) {
+                return availableSequentialSlideFiles[currentAvailableSlideIdx++];
+            }
+            return null; // No more available sequential slides
+        };
+
+        const getFixedSlide = (slideNum) => { // For Slide1 and Slide2
+            return foundSlidesMapping["Slide" + slideNum] || null;
+        };
+
+
+        currentUdemyData.sections.forEach((udemySectionFromScrape, sectionIdx) => {
+            let lessonsForThisSectionInMasterPlan = [];
+            let firstVideoLessonInSectionMasterPlanGenerated = false;
+            let allocatedSectionIntroSlide = null;
+            let lessonCounterForPPro = 0;
+
+            const hasMatchedVideoInSection = udemySectionFromScrape.lessons.some(lesson => {
+                const currentLessonOriginalIndexCheck = lesson.lessonIndexInSection !== undefined
+                                                   ? lesson.lessonIndexInSection
+                                                   : udemySectionFromScrape.lessons.indexOf(lesson);
+                const matchedInfo = udemyLessonsForMatchingGlobal.find(
+                    ul => ul.originalSectionIndex === sectionIdx &&
+                          ul.originalLessonIndexInSection === currentLessonOriginalIndexCheck
+                );
+                return matchedInfo && matchedInfo.matchedLocalFile;
+            });
+
+            if (hasMatchedVideoInSection) {
+                allocatedSectionIntroSlide = getNextAvailableSequentialSlide();
+                if (!allocatedSectionIntroSlide) {
+                    console.warn("MasterPlan Gen: Ran out of available sequential slides for Section Intro: " + udemySectionFromScrape.sectionTitle);
+                }
             }
 
+            udemySectionFromScrape.lessons.forEach((udemyLessonFromScrape, lessonIdxInSection_actual) => {
+                const currentLessonOriginalIndex = udemyLessonFromScrape.lessonIndexInSection !== undefined
+                                                   ? udemyLessonFromScrape.lessonIndexInSection
+                                                   : lessonIdxInSection_actual;
 
-            if (missingSlides.length > 0) {
-                let missingSlidesMsg = missingSlides.slice(0,10).join(', ') + (missingSlides.length > 10 ? '...' : '');
-                updateStatus(planStatus, `Error: Missing ${missingSlides.length} slide(s): ${missingSlidesMsg}`, "error");
-                generatePremiereProjectButton.disabled = true;
+                const matchedUdemyLessonInfo = udemyLessonsForMatchingGlobal.find(
+                    ul => ul.originalSectionIndex === sectionIdx && ul.originalLessonIndexInSection === currentLessonOriginalIndex
+                );
+
+                if (matchedUdemyLessonInfo && matchedUdemyLessonInfo.matchedLocalFile) {
+                    lessonCounterForPPro++;
+                    let lessonEntry = {
+                        lessonTitle: matchedUdemyLessonInfo.udemyTitle,
+                        udemyDuration: matchedUdemyLessonInfo.originalUdemyDurationStr,
+                        lessonIndexInSection: lessonCounterForPPro,
+                        originalUdemyIndex: currentLessonOriginalIndex,
+                        blankSlide1: null,
+                        blankSlide2: null,
+                        lessonIntroSlide: null,
+                        matchedVideoFile: matchedUdemyLessonInfo.matchedLocalFile,
+                        lessonOutroSlide: null
+                    };
+
+                    lessonEntry.lessonIntroSlide = getNextAvailableSequentialSlide();
+                    if (!lessonEntry.lessonIntroSlide) {
+                         console.warn("MasterPlan Gen: Ran out of available sequential slides for Lesson Intro: " + lessonEntry.lessonTitle);
+                    }
+                    lessonEntry.lessonOutroSlide = getNextAvailableSequentialSlide();
+                     if (!lessonEntry.lessonOutroSlide) {
+                         console.warn("MasterPlan Gen: Ran out of available sequential slides for Lesson Outro: " + lessonEntry.lessonTitle);
+                    }
+
+                    if (!firstVideoLessonInSectionMasterPlanGenerated) {
+                        lessonEntry.blankSlide1 = getFixedSlide(1);
+                        lessonEntry.blankSlide2 = getFixedSlide(2);
+                        if (!lessonEntry.blankSlide1) console.warn("MasterPlan Gen: Slide1.TIF (or variant) not found in mapping for first video lesson.");
+                        if (!lessonEntry.blankSlide2) console.warn("MasterPlan Gen: Slide2.TIF (or variant) not found in mapping for first video lesson.");
+                        firstVideoLessonInSectionMasterPlanGenerated = true;
+                    }
+                    lessonsForThisSectionInMasterPlan.push(lessonEntry);
+                }
+            });
+
+            if (lessonsForThisSectionInMasterPlan.length > 0) {
+                let sectionEntry = {
+                    udemySectionTitle: udemySectionFromScrape.sectionTitle,
+                    sectionIndex: sectionIdx,
+                    sectionIntroSlide: allocatedSectionIntroSlide,
+                    lessons: lessonsForThisSectionInMasterPlan
+                };
+                masterPlan.sections.push(sectionEntry);
+            }
+        });
+
+        let globalLessonCounter = 0;
+        masterPlan.sections.forEach(section => {
+            section.lessons.forEach(lesson => {
+                lesson.globalLessonIndex = globalLessonCounter++;
+            });
+        });
+
+        masterPlanDisplay.value = JSON.stringify(masterPlan, null, 2);
+
+        try {
+             const safeCourseName = currentCourseName.replace(/[^\w\s\-\.]/g, '_').replace(/\s+/g, '_').replace(/[\.]+$/, '');
+             const projectDataFolder = path.join(currentBaseDirectory, "_03_PROJECT_DATA");
+             if (!fs.existsSync(projectDataFolder)) { fs.mkdirSync(projectDataFolder, { recursive: true }); }
+
+             currentMasterPlanPath = path.join(projectDataFolder, `${safeCourseName}_MasterPlan.json`).replace(/\\/g, '/');
+             fs.writeFileSync(currentMasterPlanPath, JSON.stringify(masterPlan, null, 2));
+             planMessages.push({text: `Master Plan saved to ${currentMasterPlanPath}`, type: "success"});
+             generatePremiereProjectButton.disabled = false;
+        } catch (e) {
+            planMessages.push({text: `Error saving Master Plan: ${e.message}`, type: "error"});
+            generatePremiereProjectButton.disabled = true;
+            console.error("Error saving Master Plan:", e);
+        }
+
+        const finalStatusType = planMessages.some(m => m.type === 'error') ? 'error' : (planMessages.some(m => m.type === 'info') ? 'info' : 'success');
+        updateStatus(planStatus, planMessages.map(m => m.text).join("\n"), finalStatusType, true);
+        return true;
+    }
+
+
+    // --- Event Listeners for Buttons ---
+    if (validateAndPlanButton) {
+        validateAndPlanButton.onclick = function() {
+            updateStatus(planStatus, "Starting validation and planning...", "info", false);
+            udemyLessonsForMatchingGlobal = [];
+            generatePlanLogic(false);
+        };
+    }
+
+    if (regeneratePlanButton) {
+        regeneratePlanButton.onclick = function() {
+            updateStatus(planStatus, "Re-validating slides and regenerating Master Plan...", "info", false);
+            if (udemyLessonsForMatchingGlobal.length === 0 && !IS_CLIENT_TEST_MODE) { // Check if not in test mode and no prior matching
+                updateStatus(planStatus, "Error: Video matching data not available. Please run 'Validate Slides & Generate Master Plan' first.", "error", true);
                 return;
             }
-
-            updateStatus(planStatus, (planStatus.textContent.includes("Video Matching") ? planStatus.textContent + "\n" : "") +
-                `Slide Validation: All required slides found! Generating Master Plan...`, "success");
-
-
-            let masterPlan = {
-                courseTitle: currentUdemyData.courseTitle || currentCourseName,
-                baseVideoPath: rawVideoPathInput.value.trim(),
-                baseSlidePath: slidesPath,
-                projectDataPath: path.join(currentBaseDirectory, "_03_PROJECT_DATA").replace(/\\/g, '/'),
-                premiereProjectFile: path.join(currentBaseDirectory, "_04_PREMIERE_PROJECTS", currentCourseName.replace(/[^\w\s\-\.]/g, '_').replace(/\s+/g, '_').replace(/[\.]+$/, '') + ".prproj").replace(/\\/g, '/'),
-                sections: []
-            };
-
-            let sequentialSlideAllocatorIndex = 3;
-            const getSlideFile = (slideNum) => {
-                return foundSlidesMapping["Slide" + slideNum] || null;
-            };
-
-            currentUdemyData.sections.forEach((udemySectionFromScrape, sectionIdx) => {
-                let lessonsForThisSectionInMasterPlan = [];
-                let firstVideoLessonInSectionMasterPlanGenerated = false;
-                let allocatedSectionIntroSlide = null;
-
-                const hasMatchedVideoInSection = udemySectionFromScrape.lessons.some(lesson => {
-                    const currentLessonOriginalIndexCheck = lesson.lessonIndexInSection !== undefined
-                                                       ? lesson.lessonIndexInSection
-                                                       : udemySectionFromScrape.lessons.indexOf(lesson);
-                    const matchedInfo = udemyLessonsForMatching.find(
-                        ul => ul.originalSectionIndex === sectionIdx &&
-                              ul.originalLessonIndexInSection === currentLessonOriginalIndexCheck
-                    );
-                    return matchedInfo && matchedInfo.matchedLocalFile;
-                });
-
-                if (hasMatchedVideoInSection) {
-                    allocatedSectionIntroSlide = getSlideFile(sequentialSlideAllocatorIndex++);
-                    if (!allocatedSectionIntroSlide) {
-                        console.warn("MasterPlan Gen: Could not allocate Section Intro Slide for section: " + udemySectionFromScrape.sectionTitle + " (expected Slide" + (sequentialSlideAllocatorIndex -1) + ")");
-                    }
+             // If in client test mode, udemyLessonsForMatchingGlobal might be empty if the test plan itself is the source
+            if (IS_CLIENT_TEST_MODE && hardcodedTestMasterPlanJsonString) {
+                try {
+                    const testPlan = JSON.parse(hardcodedTestMasterPlanJsonString);
+                    // Re-populate udemyLessonsForMatchingGlobal from the test plan for consistency if needed,
+                    // or ensure generatePlanLogic can handle it if it's empty in test mode by re-parsing the test JSON.
+                    // For now, let's assume generatePlanLogic will handle it or we rely on the initial click of validateAndPlanButton
+                    // to populate it even in test mode (which it does via the test JSON loading).
+                    console.log("Regenerating plan in test mode. Using existing or test JSON derived matching info.");
+                } catch(e) {
+                    updateStatus(planStatus, "Error: Could not parse test JSON for regeneration.", "error", true);
+                    return;
                 }
-
-                udemySectionFromScrape.lessons.forEach((udemyLessonFromScrape, lessonIdxInSection_actual) => {
-                    const currentLessonOriginalIndex = udemyLessonFromScrape.lessonIndexInSection !== undefined
-                                                       ? udemyLessonFromScrape.lessonIndexInSection
-                                                       : lessonIdxInSection_actual;
-
-                    const matchedUdemyLessonInfo = udemyLessonsForMatching.find(
-                        ul => ul.originalSectionIndex === sectionIdx && ul.originalLessonIndexInSection === currentLessonOriginalIndex
-                    );
-
-                    if (matchedUdemyLessonInfo && matchedUdemyLessonInfo.matchedLocalFile) {
-                        let lessonEntry = {
-                            lessonTitle: matchedUdemyLessonInfo.udemyTitle,
-                            udemyDuration: matchedUdemyLessonInfo.originalUdemyDurationStr,
-                            lessonIndexInSection: currentLessonOriginalIndex,
-                            blankSlide1: null,
-                            blankSlide2: null,
-                            lessonIntroSlide: null,
-                            matchedVideoFile: matchedUdemyLessonInfo.matchedLocalFile,
-                            lessonOutroSlide: null
-                        };
-
-                        lessonEntry.lessonIntroSlide = getSlideFile(sequentialSlideAllocatorIndex++);
-                        if (!lessonEntry.lessonIntroSlide) {
-                             console.warn("MasterPlan Gen: Could not allocate Lesson Intro Slide for lesson: " + lessonEntry.lessonTitle + " (expected Slide" + (sequentialSlideAllocatorIndex -1) + ")");
-                        }
-                        lessonEntry.lessonOutroSlide = getSlideFile(sequentialSlideAllocatorIndex++);
-                         if (!lessonEntry.lessonOutroSlide) {
-                             console.warn("MasterPlan Gen: Could not allocate Lesson Outro Slide for lesson: " + lessonEntry.lessonTitle + " (expected Slide" + (sequentialSlideAllocatorIndex -1) + ")");
-                        }
-
-                        if (!firstVideoLessonInSectionMasterPlanGenerated) {
-                            lessonEntry.blankSlide1 = getSlideFile(1);
-                            lessonEntry.blankSlide2 = getSlideFile(2);
-                            if (!lessonEntry.blankSlide1) console.warn("MasterPlan Gen: Slide1.TIF (or variant) not found in mapping for first video lesson.");
-                            if (!lessonEntry.blankSlide2) console.warn("MasterPlan Gen: Slide2.TIF (or variant) not found in mapping for first video lesson.");
-                            firstVideoLessonInSectionMasterPlanGenerated = true;
-                        }
-                        lessonsForThisSectionInMasterPlan.push(lessonEntry);
-                    }
-                });
-
-                if (lessonsForThisSectionInMasterPlan.length > 0) {
-                    let sectionEntry = {
-                        udemySectionTitle: udemySectionFromScrape.sectionTitle,
-                        sectionIndex: sectionIdx,
-                        sectionIntroSlide: allocatedSectionIntroSlide,
-                        lessons: lessonsForThisSectionInMasterPlan
-                    };
-                    masterPlan.sections.push(sectionEntry);
-                }
-            });
-
-            let globalLessonCounter = 0;
-            masterPlan.sections.forEach(section => {
-                section.lessons.forEach(lesson => {
-                    lesson.globalLessonIndex = globalLessonCounter++;
-                });
-            });
-
-
-            masterPlanDisplay.value = JSON.stringify(masterPlan, null, 2);
-
-            try {
-                 const safeCourseName = currentCourseName.replace(/[^\w\s\-\.]/g, '_').replace(/\s+/g, '_').replace(/[\.]+$/, '');
-                 const projectDataFolder = path.join(currentBaseDirectory, "_03_PROJECT_DATA");
-                 if (!fs.existsSync(projectDataFolder)) { fs.mkdirSync(projectDataFolder, { recursive: true }); }
-
-                 currentMasterPlanPath = path.join(projectDataFolder, `${safeCourseName}_MasterPlan.json`).replace(/\\/g, '/');
-                 fs.writeFileSync(currentMasterPlanPath, JSON.stringify(masterPlan, null, 2));
-                 updateStatus(planStatus, (planStatus.textContent.includes("Video Matching") ? planStatus.textContent + "\n" : "") + `Master Plan saved to ${currentMasterPlanPath}`, "success", true);
-                 generatePremiereProjectButton.disabled = false;
-            } catch (e) {
-                updateStatus(planStatus, `Error saving Master Plan: ${e.message}`, "error", true);
-                generatePremiereProjectButton.disabled = true;
-                console.error("Error saving Master Plan:", e);
             }
-        };
+            generatePlanLogic(true);
+        }
     }
 
 
@@ -802,7 +900,7 @@ window.onload = function() {
                 premiereProgressBar.classList.add('indeterminate');
             }
 
-            if (IS_CLIENT_TEST_MODE) {
+            if (IS_CLIENT_TEST_MODE && currentMasterPlanPath === "CLIENT_TEST_MODE_PLAN_LOADED") {
                 updateStatus(premiereStatus, "CLIENT TEST MODE: Using Master Plan from display for Premiere Pro...", "info");
                 masterPlanStringForEval = masterPlanDisplay.value;
                 try {

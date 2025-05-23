@@ -3,7 +3,7 @@
 #include "json2.js"; // Ensure json2.js is in the same folder or provide correct relative path
 
 // Test mode flag
-var IS_TEST_MODE = true; // Set to false for full processing
+var IS_TEST_MODE = false; // Set to false for full processing
 var PPRO_BIN_TYPE = 2; // ProjectItemType.BIN
 var PPRO_FILE_TYPE = 1; // ProjectItemType.FILE (for master clips/media files)
 var PPRO_CLIP_TYPE = 0; // ProjectItemType.CLIP (master clips can also be this type)
@@ -186,8 +186,7 @@ function importFilesToBin(sourceFolderPath, targetBin, fileTypeDescription, file
  * @returns {ProjectItem|null}
  */
 function findItemInBinByName(itemName, bin, itemTypeDescription) {
-    if (!itemName) { // Added check for null/empty itemName
-        // $.writeln("ExtendScript: findItemInBinByName - itemName is null or empty. Cannot search.");
+    if (!itemName) {
         return null;
     }
     if (!bin || !bin.children) {
@@ -411,8 +410,9 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
 
         for (var s = 0; s < sectionsToProcess.length; s++) {
             var sectionData = sectionsToProcess[s];
-            var sectionBinName = padNumberStart(sectionData.sectionIndex + 1, 2) + " - " + sectionData.udemySectionTitle.replace(/[^\w\s\-]/g, '_').replace(/\s+/g, '_');
-            $.writeln("ExtendScript: Processing Section " + (sectionData.sectionIndex + 1) + ": " + sectionData.udemySectionTitle);
+            // UPDATED Section Bin Naming
+            var sectionBinName = "S" + padNumberStart(sectionData.sectionIndex + 1, 2) + " - " + sectionData.udemySectionTitle.replace(/[^\w\s\-]/g, '_').replace(/\s+/g, '_');
+            $.writeln("ExtendScript: Processing Section " + (sectionData.sectionIndex + 1) + ": " + sectionData.udemySectionTitle + " (Bin: " + sectionBinName + ")");
             var sectionBin = findBinByName(courseBin, sectionBinName) || courseBin.createBin(sectionBinName);
 
             if (!sectionBin) { $.writeln("Error creating section bin: " + sectionBinName + ". Skipping this section."); continue; }
@@ -421,7 +421,7 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
                 sectionBin.setColorLabel(labelColors[sectionData.sectionIndex % labelColors.length]);
             }
 
-            var firstVideoLessonInSectionProcessed = false; // Flag for this section
+            var firstVideoLessonInSectionProcessed = false;
 
             var lessonsToProcess = IS_TEST_MODE ? sectionData.lessons.slice(0, 1) : sectionData.lessons;
              if (IS_TEST_MODE && sectionData.lessons.length > 0) $.writeln("ExtendScript: TEST MODE - Will process up to 1 lesson for sequence creation in section: " + sectionData.udemySectionTitle);
@@ -434,7 +434,8 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
                     continue;
                 }
 
-                var sequenceName = padNumberStart(lessonData.lessonIndexInSection + 1, 2) + " - " + lessonData.lessonTitle.replace(/[^\w\s\-]/g, '_').replace(/\s+/g, '_');
+                // UPDATED Lesson Sequence Naming: Uses lessonIndexInSection from MasterJSON (which is 1-based for matched lessons in a section)
+                var sequenceName = "L" + padNumberStart(lessonData.lessonIndexInSection, 2) + " - " + lessonData.lessonTitle.replace(/[^\w\s\-]/g, '_').replace(/\s+/g, '_');
                 $.writeln("ExtendScript: Preparing sequence: '" + sequenceName + "' for bin: '" + sectionBin.name + "'");
 
                 if (findSequenceInBin(sectionBin, sequenceName)){
@@ -444,10 +445,7 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
 
                 var clipsForSequence = [];
 
-                // Add clips based on the new logic
                 if (!firstVideoLessonInSectionProcessed) {
-                    // This is the first lesson in this section that has a video.
-                    // Add Slide1 and Slide2 (which are stored in lessonData.blankSlide1/2 for the first lesson)
                     if (lessonData.blankSlide1) {
                         var blankSlide1Item = findItemInBinByName(lessonData.blankSlide1, slidesBin, "Blank Slide 1") || (importedSlidesMap ? importedSlidesMap[lessonData.blankSlide1] : null);
                         if (blankSlide1Item && (blankSlide1Item.type === PPRO_FILE_TYPE || blankSlide1Item.type === PPRO_CLIP_TYPE)) {
@@ -463,7 +461,6 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
                         } else { $.writeln("Warning: Blank Slide 2 '" + lessonData.blankSlide2 + "' not found or invalid for first video lesson."); }
                     }
 
-                    // Add Section Intro Slide (if it exists for the section)
                     if (sectionData.sectionIntroSlide) {
                         var sectionIntroSlideItem = findItemInBinByName(sectionData.sectionIntroSlide, slidesBin, "Section Intro Slide") || (importedSlidesMap ? importedSlidesMap[sectionData.sectionIntroSlide] : null);
                         if (sectionIntroSlideItem && (sectionIntroSlideItem.type === PPRO_FILE_TYPE || sectionIntroSlideItem.type === PPRO_CLIP_TYPE)) {
@@ -473,10 +470,9 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
                             $.writeln("Warning: Section Intro Slide '" + sectionData.sectionIntroSlide + "' not found or invalid for sequence.");
                         }
                     }
-                    firstVideoLessonInSectionProcessed = true; // Mark that section-start slides have been added
+                    firstVideoLessonInSectionProcessed = true;
                 }
 
-                // Add Lesson Intro Slide
                 if (lessonData.lessonIntroSlide) {
                     var lessonIntroSlideItem = findItemInBinByName(lessonData.lessonIntroSlide, slidesBin, "Lesson Intro Slide") || (importedSlidesMap ? importedSlidesMap[lessonData.lessonIntroSlide] : null);
                     if (lessonIntroSlideItem && (lessonIntroSlideItem.type === PPRO_FILE_TYPE || lessonIntroSlideItem.type === PPRO_CLIP_TYPE)) {
@@ -485,7 +481,6 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
                     } else { $.writeln("Warning: Lesson Intro Slide '" + lessonData.lessonIntroSlide + "' not found or invalid."); }
                 }
 
-                // Add Matched Video File
                 var videoItem = findItemInBinByName(lessonData.matchedVideoFile, videosBin, "Matched Video") || (importedVideosMap ? importedVideosMap[lessonData.matchedVideoFile] : null);
                 if (videoItem && (videoItem.type === PPRO_FILE_TYPE || videoItem.type === PPRO_CLIP_TYPE) ) {
                      $.writeln("ExtendScript: Video Item for sequence: Name: '" + videoItem.name + "', Type: " + videoItem.type);
@@ -497,7 +492,6 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
                     $.writeln("Error: Matched video file '" + lessonData.matchedVideoFile + "' ("+ videoItemDetails +") not suitable for sequence '" + lessonData.lessonTitle + "'. Skipping this video for this sequence.");
                 }
 
-                // Add Lesson Outro Slide
                 if (lessonData.lessonOutroSlide) {
                     var lessonOutroSlideItem = findItemInBinByName(lessonData.lessonOutroSlide, slidesBin, "Lesson Outro Slide") || (importedSlidesMap ? importedSlidesMap[lessonData.lessonOutroSlide] : null);
                     if (lessonOutroSlideItem && (lessonOutroSlideItem.type === PPRO_FILE_TYPE || lessonOutroSlideItem.type === PPRO_CLIP_TYPE)) {
@@ -506,7 +500,6 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
                     } else { $.writeln("Warning: Lesson Outro Slide '" + lessonData.lessonOutroSlide + "' not found or invalid."); }
                 }
 
-                // Create sequence from the collected clips
                 if (clipsForSequence.length > 0) {
                     if (!app.project.createNewSequenceFromClips) {
                         $.writeln("Error: app.project.createNewSequenceFromClips is not a function.");
