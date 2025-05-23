@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ExtensionList>
-    <Extension Id="com.gishant.eccouncilplugin.panel"> <HostList>
+    <Extension Id="com.gishant.videoautomationhub.panel"> <HostList>
             <Host Name="PPRO" Port="8088"/> </HostList>
     </Extension>
 </ExtensionList>

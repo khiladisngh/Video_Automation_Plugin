@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ExtensionManifest Version="8.0" ExtensionBundleId="com.gishant.eccouncilplugin" ExtensionBundleVersion="1.0.0" ExtensionBundleName="ECCouncil Plugin" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ExtensionManifest Version="8.0" ExtensionBundleId="com.gishant.videoautomationhub" ExtensionBundleVersion="1.0.0" ExtensionBundleName="ECCouncil Plugin" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <ExtensionList>
-        <Extension Id="com.gishant.eccouncilplugin.panel" Version="1.0.0" />
+        <Extension Id="com.gishant.videoautomationhub.panel" Version="1.0.0" />
     </ExtensionList>
     <ExecutionEnvironment>
         <HostList>
@@ -15,7 +15,7 @@
         </RequiredRuntimeList>
     </ExecutionEnvironment>
     <DispatchInfoList>
-        <Extension Id="com.gishant.eccouncilplugin.panel">
+        <Extension Id="com.gishant.videoautomationhub.panel">
             <DispatchInfo>
                 <Resources>
                     <MainPath>./index.html</MainPath>

@@ -66,7 +66,7 @@ This method involves copying the plugin files directly into the Adobe CEP extens
         *(Note: The `AppData` and `~/Library` folders might be hidden by default.)*
 
 2.  **Copy the Plugin Folder:**
-    * Copy the entire plugin folder (the root of this repository, which should be named `com.gishant.eccouncilplugin` or ensure the `Id` in `CSXS/manifest.xml` matches the folder name if you rename it) into the CEP extensions folder identified above.
+    * Copy the entire plugin folder (the root of this repository, which should be named `com.gishant.videoautomationhub` or ensure the `Id` in `CSXS/manifest.xml` matches the folder name if you rename it) into the CEP extensions folder identified above.
 
 3.  **Enable Debug Mode (if necessary):**
     * You might need to enable unsigned extension loading, especially for manual installs.
