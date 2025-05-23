@@ -28,21 +28,15 @@ function setupCourseProjectAndDirectories(basePath, courseName) {
             "_04_PREMIERE_PROJECTS",
             "_05_EXPORTS"
         ];
-        var createdCount = 0;
-        var existingCount = 0;
         var errorMessages = [];
 
         for (var i = 0; i < subDirs.length; i++) {
             var subDirPath = mainCoursePath + "/" + subDirs[i];
             var subDirFolder = new Folder(subDirPath);
             if (!subDirFolder.exists) {
-                if (subDirFolder.create()) {
-                    createdCount++;
-                } else {
+                if (!subDirFolder.create()) {
                     errorMessages.push("Failed to create subdirectory: " + subDirs[i]);
                 }
-            } else {
-                existingCount++;
             }
         }
 
@@ -53,54 +47,55 @@ function setupCourseProjectAndDirectories(basePath, courseName) {
         // --- Create or Open Premiere Pro Project ---
         var premiereProjectsFolder = new Folder(mainCoursePath + "/_04_PREMIERE_PROJECTS");
         if (!premiereProjectsFolder.exists) {
-            if (!premiereProjectsFolder.create()){ // Should have been created, but good to check
-                return "Error: Could not ensure _04_PREMIERE_PROJECTS folder exists.";
+            if (!premiereProjectsFolder.create()){
+                return "Error: Could not ensure _04_PREMIERE_PROJECTS folder exists at: " + premiereProjectsFolder.fsName;
             }
         }
 
         var projectFileName = safeCourseName + ".prproj";
         var projectFilePath = premiereProjectsFolder.fsName.replace(/\\/g, '/') + "/" + projectFileName;
-        var projectFile = new File(projectFilePath);
+        var projectFileObject = new File(projectFilePath); // Use this File object for app.open()
         var projectOpenedSuccessfully = false;
         var messagePrefix = "";
 
-        if (projectFile.exists) {
+        if (projectFileObject.exists) {
             // Project file exists, try to open it
-            // Ensure any current project is handled (Premiere Pro usually prompts to save)
-            // app.openDocument() is more generic, app.openProject() is specific. Let's try app.openProject().
-            // If a project is already open and it's the same one, openProject might do nothing or re-focus.
-            // If it's a different project, it will close the current (with save prompt) and open the new one.
-            if (app.project && app.project.path.toString().replace(/\\/g, '/') === projectFilePath) {
-                // The requested project is already open
+            // Check if it's already the active project
+            if (app.project && app.project.path && app.project.path.toString().replace(/\\/g, '/') === projectFilePath) {
                 projectOpenedSuccessfully = true;
                 messagePrefix = "Success: Existing project '" + projectFileName + "' is already open. Folders verified.";
             } else {
-                // Attempt to open the existing project file
-                // Note: app.openProject() doesn't return a boolean success in all PPro versions.
-                // We might need to rely on checking app.project.path after the call.
-                app.openProject(projectFilePath);
-                // Check if the project path matches after attempting to open
-                if (app.project && app.project.path.toString().replace(/\\/g, '/') === projectFilePath) {
+                // Attempt to open the existing project file using app.open()
+                app.open(projectFileObject); // Pass the File object
+
+                // Check if the project path matches after attempting to open.
+                // This check might need a slight delay or a more robust way to confirm in some PPro versions,
+                // as app.open() might not block script execution until the project is fully loaded.
+                // For now, we rely on checking the path immediately after.
+                if (app.project && app.project.path && app.project.path.toString().replace(/\\/g, '/') === projectFilePath) {
                     projectOpenedSuccessfully = true;
                     messagePrefix = "Success: Existing project '" + projectFileName + "' opened. Folders verified.";
                 } else {
-                    // This case is tricky. If openProject fails silently or PPro shows an error,
-                    // we might not get a direct failure indication here.
-                    // For now, if path doesn't match, assume it might have failed or user cancelled a dialog.
-                    return "Error: Could not open existing project '" + projectFileName + "'. Please check Premiere Pro.";
+                    // If the path doesn't match, it could be an async operation or a failure.
+                    // It's hard to get a definitive boolean success from app.open() for projects.
+                    // We'll assume if the path isn't updated, it might not have opened as expected,
+                    // or the user cancelled a dialog (e.g., save changes to current project).
+                    return "Error: Could not confirm opening of existing project '" + projectFileName + "'. Please check Premiere Pro. The app.project.path did not match after attempting to open, or a dialog may have been cancelled.";
                 }
             }
         } else {
             // Project file does not exist, create a new one
-            var newProjectSuccess = app.newProject(projectFilePath);
-            // Similar to openProject, newProject's return can be inconsistent.
-            // Check app.project.path.
-            if (app.project && app.project.path.toString().replace(/\\/g, '/') === projectFilePath) {
+            var newProjectSuccess = app.newProject(projectFilePath); // This is generally reliable
+
+            if (app.project && app.project.path && app.project.path.toString().replace(/\\/g, '/') === projectFilePath) {
                 projectOpenedSuccessfully = true;
                 messagePrefix = "Success: New project '" + projectFileName + "' created and opened. Folders set up.";
-            } else {
-                // If newProject failed.
-                return "Error: Failed to create new Premiere Pro project at: " + projectFilePath + ". Please check Premiere Pro.";
+            } else if (newProjectSuccess === true) { // Some versions might return a boolean
+                 projectOpenedSuccessfully = true;
+                 messagePrefix = "Success: New project '" + projectFileName + "' created and opened (confirmed by return value). Folders set up.";
+            }
+            else {
+                return "Error: Failed to create or confirm creation of new Premiere Pro project at: " + projectFilePath + ". Please check Premiere Pro.";
             }
         }
 
@@ -112,10 +107,23 @@ function setupCourseProjectAndDirectories(basePath, courseName) {
         }
 
     } catch (e) {
-        return "Error: Exception in ExtendScript (setupCourseProjectAndDirectories): " + e.toString();
+        var errorString = "Error: Exception in ExtendScript (setupCourseProjectAndDirectories): " + e.toString();
+        if (e.line) {
+            errorString += " on line " + e.line;
+        }
+        if (e.fileName) {
+            errorString += " in file " + e.fileName;
+        }
+        return errorString;
     }
 }
 
-// ... (Placeholders for runUdemyScraper and listLocalVideos remain the same for now) ...
-function runUdemyScraper(udemyUrl) { /* ... */ return JSON.stringify({"message": "scraper not implemented"});}
-function listLocalVideos(folderPath) { /* ... */ return JSON.stringify([]);}
+// Placeholder for runUdemyScraper - Handled by client/main.js
+function runUdemyScraper(udemyUrl) {
+    return JSON.stringify({"error": "Node.js scraper execution from ExtendScript is not implemented. Client-side JS handles it."});
+}
+
+// Placeholder for listLocalVideos - Handled by client/main.js
+function listLocalVideos(folderPath) {
+    return JSON.stringify({"error": "File listing from ExtendScript is not implemented. Client-side JS handles it."});
+}

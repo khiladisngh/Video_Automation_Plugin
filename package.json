@@ -1,6 +1,17 @@
 {
+  "name": "eccouncil-udemy-automator",
+  "version": "1.0.0",
+  "description": "Premiere Pro plugin to automate Udemy course video processing.",
   "dependencies": {
-    "prettier": "^3.5.3",
-    "puppeteer": "^24.9.0"
-  }
+    "puppeteer": "^24.9.0",
+    "ffprobe-static": "^3.1.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  },
+  "scripts": {
+    "format": "prettier --write \"**/*.{js,jsx,json,css,md,html}\""
+  },
+  "author": "Gishant",
+  "license": "MIT"
 }
