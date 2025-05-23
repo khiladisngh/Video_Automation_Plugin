@@ -586,8 +586,8 @@ window.onload = function() {
 
     // Autofill and other initial setup logic
     if (courseNameInput) courseNameInput.value = "Wireshark";
-    if (baseDirectoryInput) baseDirectoryInput.value = "D:/01_PROJECTS_ACTIVE/MediaSoftwareDev/PremierePro/Plugins/ECCouncil_Plugin/projects";
-    if (udemyUrlInput) udemyUrlInput.value = "https://www.udemy.com/course/wireshark-tcpip/?couponCode=LEARNNOWPLANS";
+    if (baseDirectoryInput) baseDirectoryInput.value = "H:/Temp/projects";
+    if (udemyUrlInput) udemyUrlInput.value = "https://www.udemy.com/course/wireshark-tcpip";
     currentCourseName = courseNameInput.value;
     currentBaseDirectory = baseDirectoryInput.value;
     if (currentCourseName && currentBaseDirectory) {
