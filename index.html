@@ -20,7 +20,7 @@
             <div class="input-group">
                 <label for="baseDirectoryInput">Base Directory for Courses:</label>
                 <div class="input-with-button">
-                    <input type="text" id="baseDirectoryInput" class="adobe-input" placeholder="e.g., D:/Udemy_Courses">
+                    <input type="text" id="baseDirectoryInput" class="adobe-input" placeholder="e.g., H:/Temp/projects">
                     <button id="browseBaseDirButton" class="adobe-button browse-button">Browse...</button>
                 </div>
             </div>
@@ -34,9 +34,9 @@
                 <p id="projectStatusSubMessage">A Premiere Pro project has been prepared.</p>
                 <p><strong>Next Steps:</strong></p>
                 <ol>
-                    <li>Place all downloaded raw video lectures into the <strong>'_01_RAW_VIDEOS'</strong> folder within your new course directory.</li>
-                    <li>Place all slide materials (intro, outro, lesson-specific) into the <strong>'_02_SLIDES'</strong> folder.</li>
-                    <li>Once files are in place, proceed to Step 2 to fetch course data from Udemy.</li>
+                    <li>Place all downloaded raw video lectures into the <strong>'_01_RAW_VIDEOS'</strong> folder.</li>
+                    <li>Place all slide materials into the <strong>'_02_SLIDES'</strong> folder.</li>
+                    <li>Proceed to Step 2.</li>
                 </ol>
             </div>
         </div>
@@ -64,14 +64,13 @@
                     <button id="browseSlidePathButton" class="adobe-button browse-button">Browse...</button>
                 </div>
             </div>
-            <button id="listLocalFilesButton" class="adobe-button button-full-width" style="margin-top: 5px;">List Local Video Files</button>
+            <button id="listLocalFilesButton" class="adobe-button button-full-width" style="margin-top: 5px;">List Local Video Files & Get Durations</button>
             <div id="localFileStatus" class="status-message" style="min-height: 20px;"></div>
 
             <hr style="border: none; border-top: 1px solid var(--spectrum-alias-border-dark); margin: var(--spectrum-spacing-200) 0;">
 
             <button id="validateAndPlanButton" class="adobe-button primary-action button-full-width">Validate Slides & Generate Master Plan</button>
             <div id="planStatus" class="status-message" style="min-height: 20px;"></div>
-
 
             <h3 class="sub-heading" style="margin-top:var(--spectrum-spacing-200);">Scraped Udemy Course Structure (Raw):</h3>
             <textarea id="udemyDataDisplay" class="adobe-textarea" rows="6" readonly></textarea>
@@ -86,8 +85,11 @@
          <div class="section-container">
             <h2>Step 3: Generate Premiere Pro Project Content</h2>
             <p class="placeholder-text"><em>(This will use the generated Master Plan JSON)</em></p>
-            <button id="generatePremiereProjectButton" class="adobe-button button-full-width" disabled>Generate Bins & Sequences</button>
-            <div id="premiereStatus" class="status-message"></div>
+            <button id="generatePremiereProjectButton" class="adobe-button primary-action button-full-width" disabled>Generate Bins & Sequences</button>
+            <div id="premiereProgressContainer" class="progress-container" style="display:none;">
+                <div id="premiereProgressBar" class="progress-bar"></div>
+            </div>
+            <div id="premiereStatus" class="status-message" style="min-height: 20px;"></div>
         </div>
     </div>
 </body>

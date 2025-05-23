@@ -53,21 +53,27 @@ window.onload = function() {
     var planStatus = document.getElementById('planStatus');
     var masterPlanDisplay = document.getElementById('masterPlanDisplay');
     var generatePremiereProjectButton = document.getElementById('generatePremiereProjectButton');
+    var premiereProgressContainer = document.getElementById('premiereProgressContainer');
+    var premiereProgressBar = document.getElementById('premiereProgressBar');
+    var premiereStatus = document.getElementById('premiereStatus');
+
 
     // --- Application State Variables ---
     let currentUdemyData = null;
     let currentLocalVideoFiles = [];
     let localVideoDetails = [];
     let currentCourseName = "";
-    // currentBaseDirectory will be the course-specific root like H:/Temp/projects/Wireshark
-    // It's derived from baseDirectoryInput.value + courseNameInput.value
     let currentBaseDirectory = "";
+    let currentMasterPlanPath = "";
 
 
     // --- Helper Functions ---
     function updateStatus(element, message, type, isPermanent) {
-        if (!element) return;
-        let displayMessage = message.replace(/^Success:/i, '').replace(/^Error:/i, '').trim();
+        if (!element) { console.warn("updateStatus called with null element for message:", message); return; }
+        let displayMessage = message;
+        if (typeof message === 'string') {
+            displayMessage = message.replace(/^Success:/i, '').replace(/^Error:/i, '').trim();
+        }
         element.textContent = displayMessage;
         element.className = 'status-message';
         if (type) { element.classList.add(type); }
@@ -91,81 +97,60 @@ window.onload = function() {
         if (parts.length === 3) { seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]; }
         else if (parts.length === 2) { seconds = parts[0] * 60 + parts[1]; }
         else if (parts.length === 1 && !isNaN(parts[0])) { seconds = parts[0]; }
-        return isNaN(seconds) ? 0 : Math.round(seconds); // Round Udemy duration
+        return isNaN(seconds) ? 0 : Math.round(seconds);
     }
 
     function fetchVideoDurationPromise(videoFilePath, videoFileNameForLog) {
         return new Promise((resolve, reject) => {
             const extensionBasePath = getExtensionBasePath();
             const durationScriptPath = path.join(extensionBasePath, 'scripts', 'get_video_duration.js');
-
             console.log(`Fetching duration for: ${videoFileNameForLog} at ${videoFilePath}`);
             console.log(`Using duration script: ${durationScriptPath}`);
-
             if (!fs.existsSync(durationScriptPath)) {
                 const errMsg = `Duration script not found at ${durationScriptPath}`;
                 console.error(errMsg);
                 return reject(new Error(errMsg));
             }
-
             const process = child_process.spawn('node', [durationScriptPath, videoFilePath]);
             let durationOutput = '';
             let errorOutput = '';
-
-            process.stdout.on('data', (data) => {
-                durationOutput += data.toString().trim();
-            });
-            process.stderr.on('data', (data) => {
-                errorOutput += data.toString().trim();
-            });
+            process.stdout.on('data', (data) => { durationOutput += data.toString().trim(); });
+            process.stderr.on('data', (data) => { errorOutput += data.toString().trim(); });
             process.on('close', (code) => {
                 console.log(`Duration script for ${videoFileNameForLog} exited with code ${code}.`);
-                if (errorOutput) {
-                    console.error(`Duration script stderr for ${videoFileNameForLog}: ${errorOutput}`);
-                }
-                if (durationOutput) {
-                    console.log(`Duration script stdout for ${videoFileNameForLog}: ${durationOutput}`);
-                }
-
+                if (errorOutput) console.error(`Duration script stderr for ${videoFileNameForLog}: ${errorOutput}`);
+                if (durationOutput) console.log(`Duration script stdout for ${videoFileNameForLog}: ${durationOutput}`);
                 if (code === 0 && durationOutput) {
                     const duration = parseFloat(durationOutput);
                     if (!isNaN(duration)) {
-                        const roundedDuration = Math.round(duration); // Round to nearest second
+                        const roundedDuration = Math.round(duration);
                         console.log(`Successfully parsed & rounded duration for ${videoFileNameForLog}: ${roundedDuration}s (original: ${duration})`);
                         resolve(roundedDuration);
                     } else {
                         const errMsg = `Could not parse duration for ${videoFileNameForLog} from script output: '${durationOutput}'. Stderr: '${errorOutput}'`;
-                        console.error(errMsg);
-                        reject(new Error(errMsg));
+                        console.error(errMsg); reject(new Error(errMsg));
                     }
                 } else {
                     const errMsg = `Duration script for ${videoFileNameForLog} failed (code ${code}). Stderr: '${errorOutput}'. Stdout: '${durationOutput}'`;
-                    console.error(errMsg);
-                    reject(new Error(errMsg));
+                    console.error(errMsg); reject(new Error(errMsg));
                 }
             });
             process.on('error', (err) => {
                 const errMsg = `Failed to start duration script for ${videoFileNameForLog}: ${err.message}`;
-                console.error(errMsg, err);
-                reject(new Error(errMsg));
+                console.error(errMsg, err); reject(new Error(errMsg));
             });
         });
     }
 
     function levenshteinDistance(a = "", b = "") {
-        if (a.length === 0) return b.length;
-        if (b.length === 0) return a.length;
+        if (a.length === 0) return b.length; if (b.length === 0) return a.length;
         const matrix = [];
         for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
         for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
         for (let i = 1; i <= b.length; i++) {
             for (let j = 1; j <= a.length; j++) {
                 const cost = (b.charAt(i - 1) === a.charAt(j - 1)) ? 0 : 1;
-                matrix[i][j] = Math.min(
-                    matrix[i - 1][j] + 1,
-                    matrix[i][j - 1] + 1,
-                    matrix[i - 1][j - 1] + cost
-                );
+                matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost);
             }
         }
         return matrix[b.length][a.length];
@@ -184,7 +169,7 @@ window.onload = function() {
     if (setupProjectButton) {
         setupProjectButton.onclick = function() {
             const courseNameVal = courseNameInput.value.trim();
-            const baseDirVal = baseDirectoryInput.value.trim(); // This is the parent like H:/Temp/projects
+            const baseDirVal = baseDirectoryInput.value.trim();
 
             if (!courseNameVal) {
                 updateStatus(dirSetupStatus, "Please enter a Course Name.", "error"); return;
@@ -194,10 +179,8 @@ window.onload = function() {
             }
 
             currentCourseName = courseNameVal;
-            // Construct the course-specific base directory
             const safeCourseNameForPath = currentCourseName.replace(/[^\w\s\-\.]/g, '_').replace(/\s+/g, '_').replace(/[\.]+$/, '');
             currentBaseDirectory = path.join(baseDirVal, safeCourseNameForPath).replace(/\\/g, '/');
-
 
             dirSetupProgressContainer.style.display = 'block';
             dirSetupProgressBar.style.width = '0%';
@@ -206,9 +189,8 @@ window.onload = function() {
             nextStepsMessage.style.display = 'none';
             if(projectStatusSubMessage) projectStatusSubMessage.textContent = "";
 
-            // Pass the course-specific base directory to ExtendScript
             var callString = 'setupCourseProjectAndDirectories("' + escapeString(currentBaseDirectory) + '", "' + escapeString(currentCourseName) + '")';
-            console.log("Calling ExtendScript for project setup: " + callString);
+            console.log("ClientJS: Calling ExtendScript for project setup: " + callString);
 
             csInterface.evalScript(callString, function(result) {
                 dirSetupProgressContainer.style.display = 'none';
@@ -219,7 +201,6 @@ window.onload = function() {
                         updateStatus(dirSetupStatus, result, "success", true);
                         if (projectStatusSubMessage) { projectStatusSubMessage.textContent = "A Premiere Pro project has been prepared."; }
                         nextStepsMessage.style.display = 'block';
-                        // Update derived paths based on the now confirmed currentBaseDirectory
                         rawVideoPathInput.value = path.join(currentBaseDirectory, "_01_RAW_VIDEOS").replace(/\\/g, '/');
                         slidePathInput.value = path.join(currentBaseDirectory, "_02_SLIDES").replace(/\\/g, '/');
                     } else {
@@ -227,7 +208,7 @@ window.onload = function() {
                         if (projectStatusSubMessage) projectStatusSubMessage.textContent = "Project setup failed.";
                     }
                 } else {
-                    updateStatus(dirSetupStatus, "Error: An unknown error occurred or no response from PPro script.", "error", true);
+                    updateStatus(dirSetupStatus, "Error: An unknown error occurred or no response from PPro script (setup).", "error", true);
                      if (projectStatusSubMessage) projectStatusSubMessage.textContent = "Project setup failed.";
                 }
             });
@@ -289,7 +270,6 @@ window.onload = function() {
                                 updateStatus(scraperStatus, "Success: Udemy course data fetched!", "success");
                                 if (!courseNameInput.value && currentUdemyData.courseTitle) {
                                     courseNameInput.value = currentUdemyData.courseTitle;
-                                    // Update currentCourseName and potentially currentBaseDirectory if course name changed
                                     currentCourseName = courseNameInput.value;
                                     if (currentCourseName && baseDirectoryInput.value) {
                                         const parentDir = baseDirectoryInput.value;
@@ -410,6 +390,7 @@ window.onload = function() {
         validateAndPlanButton.onclick = function() {
             updateStatus(planStatus, "Starting validation and planning...", "info");
             masterPlanDisplay.value = "";
+            currentMasterPlanPath = "";
 
             if (!currentUdemyData || !currentUdemyData.sections) {
                 updateStatus(planStatus, "Error: Udemy course data not fetched or is invalid.", "error"); return;
@@ -423,7 +404,7 @@ window.onload = function() {
             if (!rawVideoPathInput.value.trim() && localVideoDetails.length > 0) {
                 updateStatus(planStatus, "Error: Raw video path not specified (needed if local videos are present).", "error"); return;
             }
-            if (!currentCourseName || !currentBaseDirectory) { // currentBaseDirectory is course-specific root
+            if (!currentCourseName || !currentBaseDirectory) {
                 updateStatus(planStatus, "Error: Course Name or Base Directory for the course not set (from Step 1). Please complete Step 1.", "error"); return;
             }
 
@@ -448,7 +429,6 @@ window.onload = function() {
             const DURATION_TOLERANCE_SECONDS = 1;
             let successfulMatches = 0;
             let availableLocalVideos = localVideoDetails.map(v => ({ ...v, isMatched: false }));
-
             console.log("--- Starting Video Matching Process ---");
             udemyLessonsForMatching.forEach(udemyLesson => {
                 if (udemyLesson.isMatched) return;
@@ -488,48 +468,43 @@ window.onload = function() {
             console.log("--- Video Matching Process Ended ---");
             updateStatus(planStatus, `Video Matching: ${successfulMatches} of ${udemyLessonsForMatching.length} Udemy lessons matched.`, "info");
 
-            // --- NEW SLIDE CALCULATION for Validation ---
-            const numUdemySections = currentUdemyData.sections.length;
+            const sectionsWithMatchedVideosCount = currentUdemyData.sections.filter((section, sectionIdx) =>
+                udemyLessonsForMatching.some(ul => ul.originalSectionIndex === sectionIdx && ul.matchedLocalFile)
+            ).length;
             const numMatchedLocalVideos = udemyLessonsForMatching.filter(ul => ul.matchedLocalFile).length;
-            const numSequentialSlidesNeeded = numUdemySections + (numMatchedLocalVideos * 2);
-            const maxRequiredSlideNumberToValidate = 2 + numSequentialSlidesNeeded;
+
+            const numSequentialSlidesNeeded = sectionsWithMatchedVideosCount + (numMatchedLocalVideos * 2);
+            const maxRequiredSlideNumberToValidate = (numMatchedLocalVideos > 0 || sectionsWithMatchedVideosCount > 0) ? (2 + numSequentialSlidesNeeded) : 0;
 
             updateStatus(planStatus, (planStatus.textContent ? planStatus.textContent + "\n" : "") +
-                `Slide Calculation: Validating Slide1, Slide2, and ${numSequentialSlidesNeeded} sequential slides (Slide3 to Slide${2 + numSequentialSlidesNeeded}). Total to check: ${maxRequiredSlideNumberToValidate}`, "info");
+                `Slide Calculation: Validating Slide1, Slide2 (if needed) and ${numSequentialSlidesNeeded} sequential slides (Slide3 to Slide${2 + numSequentialSlidesNeeded}). Total to check: ${maxRequiredSlideNumberToValidate}`, "info");
 
             let missingSlides = [];
             let foundSlidesMapping = {};
 
             try {
-                if (maxRequiredSlideNumberToValidate > 0) { // Only validate if any slides are actually needed
+                if (maxRequiredSlideNumberToValidate > 0) {
                     if (!fs.existsSync(slidesPath) || !fs.statSync(slidesPath).isDirectory()) {
                         updateStatus(planStatus, `Error: Slides directory not found: ${slidesPath}`, "error"); return;
                     }
                     const slideFilesOnDisk = fs.readdirSync(slidesPath);
-
-                    for (let i = 1; i <= 2; i++) { // Validate Slide1 and Slide2
-                        const slideRegex = new RegExp(`^slide\\s*${i}\\.(tif|tiff)$`, 'i');
-                        const foundFile = slideFilesOnDisk.find(f => slideRegex.test(f));
-                        if (foundFile) {
-                            foundSlidesMapping["Slide" + i] = foundFile;
-                        } else {
-                            missingSlides.push(`Slide${i}.tiff (or .tif)`);
+                    if (numMatchedLocalVideos > 0 || sectionsWithMatchedVideosCount > 0) {
+                        for (let i = 1; i <= 2; i++) {
+                            const slideRegex = new RegExp(`^slide\\s*${i}\\.(tif|tiff)$`, 'i');
+                            const foundFile = slideFilesOnDisk.find(f => slideRegex.test(f));
+                            if (foundFile) { foundSlidesMapping["Slide" + i] = foundFile; }
+                            else { missingSlides.push(`Slide${i}.tiff (or .tif)`); }
                         }
                     }
-                    for (let i = 1; i <= numSequentialSlidesNeeded; i++) { // Validate Slide3 onwards
+                    for (let i = 1; i <= numSequentialSlidesNeeded; i++) {
                         const expectedSlideNumberInSequence = i + 2;
                         const slideRegex = new RegExp(`^slide\\s*${expectedSlideNumberInSequence}\\.(tif|tiff)$`, 'i');
                         const foundFile = slideFilesOnDisk.find(f => slideRegex.test(f));
-                        if (foundFile) {
-                            foundSlidesMapping["Slide" + expectedSlideNumberInSequence] = foundFile;
-                        } else {
-                            missingSlides.push(`Slide${expectedSlideNumberInSequence}.tiff (or .tif)`);
-                        }
+                        if (foundFile) { foundSlidesMapping["Slide" + expectedSlideNumberInSequence] = foundFile; }
+                        else { missingSlides.push(`Slide${expectedSlideNumberInSequence}.tiff (or .tif)`);}
                     }
                 }
-            } catch (e) {
-                updateStatus(planStatus, `Error reading slides directory: ${e.message}`, "error"); return;
-            }
+            } catch (e) { updateStatus(planStatus, `Error reading slides directory: ${e.message}`, "error"); return; }
 
             if (missingSlides.length > 0) {
                 let missingSlidesMsg = missingSlides.slice(0,10).join(', ') + (missingSlides.length > 10 ? '...' : '');
@@ -540,7 +515,6 @@ window.onload = function() {
             updateStatus(planStatus, (planStatus.textContent.includes("Video Matching") ? planStatus.textContent + "\n" : "") +
                 `Slide Validation: All required slides found! Generating Master Plan...`, "success");
 
-            // --- Generate Master Plan (with new slide logic and filtering) ---
             let masterPlan = {
                 courseTitle: currentUdemyData.courseTitle || currentCourseName,
                 baseVideoPath: rawVideoPathInput.value.trim(),
@@ -549,72 +523,60 @@ window.onload = function() {
                 premiereProjectFile: path.join(currentBaseDirectory, "_04_PREMIERE_PROJECTS", currentCourseName.replace(/[^\w\s\-\.]/g, '_').replace(/\s+/g, '_').replace(/[\.]+$/, '') + ".prproj"),
                 sections: []
             };
-
             let sequentialSlideAllocatorIndex = 3;
-
             const getSlideFile = (slideNum) => {
                 const base = "Slide" + slideNum;
                 return foundSlidesMapping[base] || base + ".tiff";
             };
-
             currentUdemyData.sections.forEach((udemySectionFromScrape, sectionIdx) => {
-                let tempSectionLessons = []; // Store matched lessons temporarily for this section
-                let sectionHasMatchedVideos = false;
-
+                let lessonsForThisSectionInMasterPlan = [];
+                let firstMatchedVideoInSectionFound = false;
                 udemySectionFromScrape.lessons.forEach((udemyLessonFromScrape, lessonIdxInSection) => {
                     const matchedUdemyLessonInfo = udemyLessonsForMatching.find(
                         ul => ul.originalSectionIndex === sectionIdx && ul.originalLessonIndexInSection === lessonIdxInSection
                     );
                     if (matchedUdemyLessonInfo && matchedUdemyLessonInfo.matchedLocalFile) {
-                        sectionHasMatchedVideos = true;
-                        tempSectionLessons.push({
+                        let lessonEntry = {
                             lessonTitle: matchedUdemyLessonInfo.udemyTitle,
                             udemyDuration: matchedUdemyLessonInfo.originalUdemyDurationStr,
                             lessonIndexInSection: lessonIdxInSection,
+                            blankSlide1: null, blankSlide2: null,
+                            lessonIntroSlide: getSlideFile(sequentialSlideAllocatorIndex++),
                             matchedVideoFile: matchedUdemyLessonInfo.matchedLocalFile,
-                        });
+                            lessonOutroSlide: getSlideFile(sequentialSlideAllocatorIndex++)
+                        };
+                        if (!firstMatchedVideoInSectionFound) {
+                            lessonEntry.blankSlide1 = getSlideFile(1);
+                            lessonEntry.blankSlide2 = getSlideFile(2);
+                            firstMatchedVideoInSectionFound = true;
+                        }
+                        lessonsForThisSectionInMasterPlan.push(lessonEntry);
                     }
                 });
-
-                if (sectionHasMatchedVideos) {
+                if (lessonsForThisSectionInMasterPlan.length > 0) {
                     let sectionEntry = {
                         udemySectionTitle: udemySectionFromScrape.sectionTitle,
                         sectionIndex: sectionIdx,
                         sectionIntroSlide: getSlideFile(sequentialSlideAllocatorIndex++),
-                        lessons: []
+                        lessons: lessonsForThisSectionInMasterPlan
                     };
-
-                    tempSectionLessons.forEach((tempLesson, idxInMatched) => {
-                        let lessonEntry = {
-                            lessonTitle: tempLesson.lessonTitle,
-                            udemyDuration: tempLesson.udemyDuration,
-                            lessonIndexInSection: tempLesson.lessonIndexInSection,
-                            globalLessonIndex: masterPlan.sections.reduce((acc, s) => acc + s.lessons.length, 0) + sectionEntry.lessons.length,
-                            blankSlide1: null,
-                            blankSlide2: null,
-                            lessonIntroSlide: getSlideFile(sequentialSlideAllocatorIndex++),
-                            matchedVideoFile: tempLesson.matchedVideoFile,
-                            lessonOutroSlide: getSlideFile(sequentialSlideAllocatorIndex++)
-                        };
-
-                        if (idxInMatched === 0) { // This is the first *matched* video in this section
-                            lessonEntry.blankSlide1 = getSlideFile(1);
-                            lessonEntry.blankSlide2 = getSlideFile(2);
-                        }
-                        sectionEntry.lessons.push(lessonEntry);
-                    });
                     masterPlan.sections.push(sectionEntry);
                 }
             });
-
+            let globalLessonCounter = 0;
+            masterPlan.sections.forEach(section => {
+                section.lessons.forEach(lesson => {
+                    lesson.globalLessonIndex = globalLessonCounter++;
+                });
+            });
             masterPlanDisplay.value = JSON.stringify(masterPlan, null, 2);
             try {
                  const safeCourseName = currentCourseName.replace(/[^\w\s\-\.]/g, '_').replace(/\s+/g, '_').replace(/[\.]+$/, '');
-                 const projectDataFolder = path.join(currentBaseDirectory, "_03_PROJECT_DATA"); // Use currentBaseDirectory
+                 const projectDataFolder = path.join(currentBaseDirectory, "_03_PROJECT_DATA");
                  if (!fs.existsSync(projectDataFolder)) { fs.mkdirSync(projectDataFolder, { recursive: true }); }
-                 const masterPlanPath = path.join(projectDataFolder, `${safeCourseName}_MasterPlan.json`);
-                 fs.writeFileSync(masterPlanPath, JSON.stringify(masterPlan, null, 2));
-                 updateStatus(planStatus, (planStatus.textContent.includes("Video Matching") ? planStatus.textContent + "\n" : "") + `Master Plan saved to ${masterPlanPath}`, "success");
+                 currentMasterPlanPath = path.join(projectDataFolder, `${safeCourseName}_MasterPlan.json`);
+                 fs.writeFileSync(currentMasterPlanPath, JSON.stringify(masterPlan, null, 2));
+                 updateStatus(planStatus, (planStatus.textContent.includes("Video Matching") ? planStatus.textContent + "\n" : "") + `Master Plan saved to ${currentMasterPlanPath}`, "success");
                  generatePremiereProjectButton.disabled = false;
             } catch (e) {
                 updateStatus(planStatus, `Error saving Master Plan: ${e.message}`, "error");
@@ -624,27 +586,97 @@ window.onload = function() {
         };
     }
 
+    // --- Phase 3: Generate Premiere Pro Project Content ---
+    if (generatePremiereProjectButton) {
+        generatePremiereProjectButton.onclick = function() {
+            if (!currentMasterPlanPath || !fs.existsSync(currentMasterPlanPath)) {
+                updateStatus(premiereStatus, "Error: Master Plan JSON not found or not generated yet. Please complete Step 2.", "error");
+                return;
+            }
+            if (!currentBaseDirectory || !currentCourseName){
+                 updateStatus(premiereStatus, "Error: Course project not set up. Please complete Step 1 to define course name and base directory.", "error");
+                return;
+            }
+
+            updateStatus(premiereStatus, "Processing in Premiere Pro... This may take some time.", "info");
+            if(premiereProgressContainer) premiereProgressContainer.style.display = 'block';
+            if(premiereProgressBar) {
+                premiereProgressBar.style.width = '0%';
+                premiereProgressBar.classList.add('indeterminate');
+            }
+
+            try {
+                const masterPlanString = fs.readFileSync(currentMasterPlanPath, 'utf8');
+                const safeCourseNameVal = currentCourseName.replace(/[^\w\s\-\.]/g, '_').replace(/\s+/g, '_').replace(/[\.]+$/, '');
+                const premiereProjPath = path.join(currentBaseDirectory, "_04_PREMIERE_PROJECTS", safeCourseNameVal + ".prproj").replace(/\\/g, '/');
+
+                if (!fs.existsSync(premiereProjPath)) {
+                    updateStatus(premiereStatus, "Error: Premiere Pro project file not found at " + premiereProjPath + ". Please ensure Step 1 (Setup Project) was successful.", "error");
+                    if(premiereProgressContainer) premiereProgressContainer.style.display = 'none';
+                    if(premiereProgressBar) premiereProgressBar.classList.remove('indeterminate');
+                    return;
+                }
+
+                console.log("ClientJS: Calling ExtendScript processMasterPlanInPremiere.");
+                console.log("ClientJS: Premiere Project Path: " + premiereProjPath);
+                console.log("ClientJS: MasterPlan String (first 500 chars): " + masterPlanString.substring(0,500));
+
+                var callStr = 'processMasterPlanInPremiere(' + JSON.stringify(masterPlanString) + ', "' + escapeString(premiereProjPath) + '")';
+
+                csInterface.evalScript(callStr, function(result) {
+                    console.log("ClientJS: ExtendScript processMasterPlanInPremiere raw result:", result);
+                    if(premiereProgressContainer) premiereProgressContainer.style.display = 'none';
+                    if(premiereProgressBar) premiereProgressBar.classList.remove('indeterminate');
+
+                    if (result && typeof result === 'string') {
+                        if (result.toLowerCase().startsWith("error:")) {
+                            updateStatus(premiereStatus, result, "error");
+                        } else if (result.toLowerCase().startsWith("success:")) {
+                            updateStatus(premiereStatus, result, "success");
+                        } else {
+                             updateStatus(premiereStatus, "Premiere Pro processing finished. Result: " + result, "info");
+                        }
+                    } else if (result && typeof result === 'object' && result.hasOwnProperty('status')) {
+                        if (result.status === "complete" || result.status === "success") {
+                             updateStatus(premiereStatus, result.message || "Premiere Pro processing complete!", "success");
+                        } else if (result.status === "error") {
+                             updateStatus(premiereStatus, result.message || "Error from Premiere Pro script.", "error");
+                        } else {
+                            updateStatus(premiereStatus, result.message || "Update from Premiere Pro.", "info");
+                        }
+                    }
+                    else {
+                        updateStatus(premiereStatus, "Unknown or no response from Premiere Pro script. Check ExtendScript console.", "error");
+                    }
+                });
+
+            } catch (e) {
+                if(premiereProgressContainer) premiereProgressContainer.style.display = 'none';
+                if(premiereProgressBar) premiereProgressBar.classList.remove('indeterminate');
+                updateStatus(premiereStatus, `Error preparing to call Premiere Pro: ${e.message}`, "error");
+                console.error("Error in generatePremiereProjectButton.onclick:", e);
+            }
+        };
+    }
+
     // --- Autofill for Prototyping (UPDATED DEFAULTS) ---
     if (courseNameInput) {
         courseNameInput.value = "Wireshark";
     }
     if (baseDirectoryInput) {
-        baseDirectoryInput.value = "H:/Temp/projects"; // Your new default parent project folder
+        baseDirectoryInput.value = "H:/Temp/projects";
     }
     if (udemyUrlInput) {
-        udemyUrlInput.value = "https://www.udemy.com/course/wireshark-tcpip"; // Your new default URL
+        udemyUrlInput.value = "https://www.udemy.com/course/wireshark-tcpip";
     }
 
-    // Update state variables based on autofill
     currentCourseName = courseNameInput.value;
     const parentProjectsDir = baseDirectoryInput.value;
 
     if (currentCourseName && parentProjectsDir) {
         const safeCourseNameForPath = currentCourseName.replace(/[^\w\s\-\.]/g, '_').replace(/\s+/g, '_').replace(/[\.]+$/, '');
-        // currentBaseDirectory is the specific course's root folder
         currentBaseDirectory = path.join(parentProjectsDir, safeCourseNameForPath).replace(/\\/g, '/');
 
-        // Auto-populate derived paths
         if (rawVideoPathInput) {
             rawVideoPathInput.value = path.join(currentBaseDirectory, "_01_RAW_VIDEOS").replace(/\\/g, '/');
         }
@@ -653,10 +685,4 @@ window.onload = function() {
         }
     }
     // --- End Autofill ---
-
-    if (generatePremiereProjectButton) {
-        generatePremiereProjectButton.onclick = function() {
-            updateStatus(document.getElementById('premiereStatus'), "Premiere Pro automation not yet implemented.", "info");
-        }
-    }
 };
