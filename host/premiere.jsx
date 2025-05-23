@@ -24,8 +24,6 @@ function setupCourseProjectAndDirectories(basePath, courseName) {
         var subDirs = [
             "_01_RAW_VIDEOS",
             "_02_SLIDES",
-            "_02_SLIDES/INTRO_OUTRO",
-            "_02_SLIDES/LESSON_SPECIFIC",
             "_03_PROJECT_DATA",
             "_04_PREMIERE_PROJECTS",
             "_05_EXPORTS"

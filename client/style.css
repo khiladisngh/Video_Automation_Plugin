@@ -1,193 +1,414 @@
-/* Basic Adobe Panel Styling - adapt as needed */
+/* Adobe Spectrum Inspired - Dark Theme */
+:root {
+    /* Spectrum Base Colors (Darkest Theme as a reference) */
+    --spectrum-global-color-status: transparent;
+    /* Not directly used, but for context */
+    --spectrum-global-color-gray-200: rgb(50, 50, 50);
+    /* Panel Background */
+    --spectrum-global-color-gray-300: rgb(62, 62, 62);
+    /* Section Background */
+    --spectrum-global-color-gray-400: rgb(75, 75, 75);
+    /* Borders, UI elements */
+    --spectrum-global-color-gray-500: rgb(90, 90, 90);
+    /* UI element borders, secondary text */
+    --spectrum-global-color-gray-600: rgb(122, 122, 122);
+    /* Secondary text, icons */
+    --spectrum-global-color-gray-700: rgb(157, 157, 157);
+    /* Primary text, icons */
+    --spectrum-global-color-gray-800: rgb(202, 202, 202);
+    /* Brighter text */
+    --spectrum-global-color-gray-900: rgb(227, 227, 227);
+    /* Emphasis text */
+
+    --spectrum-global-color-blue-500: rgb(38, 128, 235);
+    /* Primary Action */
+    --spectrum-global-color-blue-600: rgb(20, 115, 230);
+    /* Primary Action Hover */
+    --spectrum-global-color-blue-700: rgb(13, 96, 197);
+    /* Primary Action Active */
+
+    --spectrum-semantic-positive-color-default: rgb(36, 145, 98);
+    /* Success Background */
+    --spectrum-semantic-positive-color-text-default: rgb(212, 240, 228);
+    /* Success Text */
+    --spectrum-semantic-negative-color-default: rgb(204, 50, 49);
+    /* Error Background */
+    --spectrum-semantic-negative-color-text-default: rgb(252, 211, 211);
+    /* Error Text */
+    --spectrum-semantic-notice-color-default: rgb(218, 126, 30);
+    /* Info/Notice Background */
+    --spectrum-semantic-notice-color-text-default: rgb(255, 235, 214);
+    /* Info/Notice Text */
+
+
+    /* Typography */
+    --spectrum-global-font-family-base: 'Adobe Clean', Arial, sans-serif;
+    --spectrum-global-font-size-100: 12px;
+    /* Default body/component text */
+    --spectrum-global-font-size-75: 11px;
+    /* Small text, labels */
+    --spectrum-global-font-size-200: 14px;
+    /* Section headings */
+    --spectrum-global-font-size-300: 16px;
+    /* Panel title */
+
+    /* Sizing & Spacing (based on 8px grid, common in Spectrum) */
+    --spectrum-spacing-50: 4px;
+    --spectrum-spacing-100: 8px;
+    --spectrum-spacing-200: 16px;
+    --spectrum-spacing-300: 24px;
+
+    /* Borders */
+    --spectrum-alias-border-dark: var(--spectrum-global-color-gray-400);
+    --spectrum-alias-border-mid: var(--spectrum-global-color-gray-500);
+    --spectrum-alias-border-light: var(--spectrum-global-color-gray-300);
+    /* For darker on lighter */
+    --spectrum-alias-border-focus: var(--spectrum-global-color-blue-500);
+    --spectrum-alias-border-radius-regular: 3px;
+
+    /* Component Heights (approximate, Spectrum is flexible) */
+    --spectrum-component-height-100: 30px;
+    /* Standard component height */
+    --spectrum-component-height-75: 26px;
+    /* Smaller components */
+}
+
 body.adobe-panel {
-    font-family: 'Adobe Clean', Arial, sans-serif;
-    /* Common Adobe font */
-    background-color: #323232;
-    /* Dark theme background */
-    color: #dcdcdc;
-    /* Light text for dark theme */
+    font-family: var(--spectrum-global-font-family-base);
+    background-color: var(--spectrum-global-color-gray-200);
+    color: var(--spectrum-global-color-gray-800);
     margin: 0;
-    padding: 15px;
-    font-size: 12px;
+    padding: var(--spectrum-spacing-200);
+    font-size: var(--spectrum-global-font-size-100);
     display: flex;
     flex-direction: column;
     height: 100vh;
-    /* Make body take full panel height */
     box-sizing: border-box;
-}
-
-/* For light theme compatibility (you'd use JS to switch themes) */
-body.adobe-panel.light {
-    background-color: #f0f0f0;
-    color: #323232;
+    overflow-y: auto;
 }
 
 #container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    /* Spacing between elements */
+    gap: var(--spectrum-spacing-200);
 }
 
-h1 {
-    font-size: 16px;
-    font-weight: bold;
+.panel-title {
+    font-size: var(--spectrum-global-font-size-300);
+    font-weight: 300;
+    /* Spectrum titles are often lighter weight */
     margin-top: 0;
-    margin-bottom: 10px;
-    color: #80c3ff;
-    /* A slightly brighter color for headings */
-}
-
-p {
-    margin-bottom: 15px;
-}
-
-.adobe-button {
-    background-color: #4a4a4a;
-    color: #f0f0f0;
-    border: 1px solid #5f5f5f;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    text-align: center;
-    transition: background-color 0.2s ease;
-}
-
-.adobe-button:hover {
-    background-color: #5a5a5a;
-}
-
-.adobe-button:active {
-    background-color: #3f3f3f;
+    margin-bottom: var(--spectrum-spacing-100);
+    color: var(--spectrum-global-color-gray-900);
+    padding-bottom: var(--spectrum-spacing-50);
+    border-bottom: 1px solid var(--spectrum-alias-border-dark);
 }
 
 .section-container {
-    margin-bottom: 25px;
-    padding: 15px;
-    border: 1px solid #4a4a4a;
-    border-radius: 6px;
-    background-color: #3a3a3a;
-    /* Slightly different background for sections */
+    padding: var(--spectrum-spacing-200);
+    border: 1px solid var(--spectrum-alias-border-light);
+    border-radius: var(--spectrum-alias-border-radius-regular);
+    background-color: var(--spectrum-global-color-gray-300);
 }
 
 .section-container h2 {
     margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 14px;
-    color: #a0d3ff;
-    /* Lighter blue for section titles */
-    border-bottom: 1px solid #555;
-    padding-bottom: 8px;
+    margin-bottom: var(--spectrum-spacing-200);
+    font-size: var(--spectrum-global-font-size-200);
+    font-weight: normal;
+    /* Or 700 for bold, Spectrum varies */
+    color: var(--spectrum-global-color-gray-800);
+    border-bottom: 1px solid var(--spectrum-alias-border-dark);
+    padding-bottom: var(--spectrum-spacing-100);
 }
 
 .input-group {
-    margin-bottom: 12px;
+    margin-bottom: var(--spectrum-spacing-200);
     display: flex;
     flex-direction: column;
-    /* Stack label and input */
 }
 
 .input-group label {
-    margin-bottom: 5px;
-    font-size: 11px;
-    color: #b0b0b0;
+    margin-bottom: var(--spectrum-spacing-50);
+    font-size: var(--spectrum-global-font-size-75);
+    color: var(--spectrum-global-color-gray-700);
+    text-transform: uppercase;
+    /* Spectrum labels are often uppercase */
+    letter-spacing: 0.5px;
 }
 
-.adobe-input {
-    background-color: #2a2a2a;
-    color: #dcdcdc;
-    border: 1px solid #505050;
-    padding: 8px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    width: calc(100% - 22px);
-    /* Full width minus padding and border */
+.adobe-input,
+.adobe-textarea {
+    background-color: var(--spectrum-global-color-gray-200);
+    /* Input bg darker than section */
+    color: var(--spectrum-global-color-gray-800);
+    border: 1px solid var(--spectrum-alias-border-mid);
+    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-100);
+    border-radius: var(--spectrum-alias-border-radius-regular);
+    font-size: var(--spectrum-global-font-size-100);
+    width: 100%;
+    box-sizing: border-box;
+    line-height: 1.5;
+    min-height: var(--spectrum-component-height-100);
+    /* Consistent height */
 }
 
-.adobe-input:focus {
+.adobe-input::placeholder {
+    color: var(--spectrum-global-color-gray-600);
+    opacity: 1;
+}
+
+
+.adobe-textarea {
+    min-height: calc(var(--spectrum-component-height-100) * 2);
+    /* Example: 2 lines high */
+    resize: vertical;
+}
+
+.adobe-input:focus,
+.adobe-textarea:focus {
     outline: none;
-    border-color: #0078d4;
-    /* Adobe blue focus color */
-    box-shadow: 0 0 0 1px #0078d4;
+    border-color: var(--spectrum-alias-border-focus);
+    box-shadow: 0 0 0 1px var(--spectrum-alias-border-focus);
 }
 
-.input-group input[type="text"]+.browse-button {
-    margin-top: -35px;
-    /* Position button next to input */
-    margin-left: calc(100% - 90px);
-    /* Adjust based on button width */
-    width: 80px;
-    /* Fixed width for browse button */
-    height: 35px;
-    padding: 6px 10px;
-    font-size: 11px;
+.input-with-button {
+    display: flex;
+    align-items: stretch;
+    /* Ensures button and input are same height */
 }
 
+.input-with-button .adobe-input {
+    flex-grow: 1;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right-width: 0;
+    /* Remove right border to merge with button */
+    min-height: var(--spectrum-component-height-100);
+}
 
+/* General Button Style (intended for standalone, full-width buttons) */
+.adobe-button {
+    background-color: var(--spectrum-global-color-gray-400);
+    color: var(--spectrum-global-color-gray-900);
+    border: 1px solid var(--spectrum-alias-border-mid);
+    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-200);
+    border-radius: var(--spectrum-alias-border-radius-regular);
+    cursor: pointer;
+    font-size: var(--spectrum-global-font-size-100);
+    text-align: center;
+    transition: background-color 0.1s ease, border-color 0.1s ease;
+    width: 100%;
+    /* Default to full width */
+    box-sizing: border-box;
+    margin-top: var(--spectrum-spacing-50);
+    line-height: 1.5;
+    min-height: var(--spectrum-component-height-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.adobe-button:hover {
+    background-color: var(--spectrum-global-color-gray-500);
+}
+
+.adobe-button:active {
+    background-color: var(--spectrum-global-color-gray-300);
+}
+
+.adobe-button.primary-action {
+    /* CTA Button Style */
+    background-color: var(--spectrum-global-color-blue-500);
+    color: var(--spectrum-global-color-gray-50, white);
+    /* Text on blue */
+    border-color: transparent;
+    /* Often no border on CTA */
+}
+
+.adobe-button.primary-action:hover {
+    background-color: var(--spectrum-global-color-blue-600);
+}
+
+.adobe-button.primary-action:active {
+    background-color: var(--spectrum-global-color-blue-700);
+}
+
+.adobe-button:disabled {
+    background-color: var(--spectrum-global-color-gray-300);
+    border-color: var(--spectrum-global-color-gray-400);
+    color: var(--spectrum-global-color-gray-600);
+    cursor: default;
+}
+
+/* Browse Button Specific Styles (Overrides .adobe-button where necessary) */
 .browse-button {
-    /* Styles for the browse button if needed, can inherit from .adobe-button */
-    /* Making it slightly smaller */
-    padding: 6px 10px;
-    font-size: 11px;
-    margin-left: 8px;
-    /* Space it from the input field if they were inline */
+    /* Override width from .adobe-button */
+    width: auto;
+    min-width: 75px;
+    /* Sufficient for "Browse..." text + padding */
+    flex-grow: 0;
+    /* Do not grow */
+    flex-shrink: 0;
+    /* Do not shrink */
+
+    /* Override margin-top from .adobe-button as it's part of an input group */
+    margin-top: 0;
+
+    /* Specific visual styles for browse button (can inherit or override adobe-button) */
+    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-100);
+    /* 4px 8px */
+    font-size: var(--spectrum-global-font-size-75);
+    /* 11px */
+    min-height: var(--spectrum-component-height-100);
+    /* Match input height */
+    line-height: 1.5;
+    /* Match input line-height */
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    /* Ensure border visually merges with input */
+    border: 1px solid var(--spectrum-alias-border-mid);
+    /* Match input border */
+    border-left-width: 1px;
+    /* Explicitly set left border, input has right border removed */
+
+
+    /* Keep other desired properties from .adobe-button or define specifically */
+    background-color: var(--spectrum-global-color-gray-400);
+    color: var(--spectrum-global-color-gray-800);
+    cursor: pointer;
+    transition: background-color 0.1s ease, border-color 0.1s ease;
+    /* display, align-items, justify-content might not be needed if text-align: center is sufficient */
+    text-align: center;
+}
+
+.browse-button:hover {
+    background-color: var(--spectrum-global-color-gray-500);
+    border-color: var(--spectrum-alias-border-mid);
+    /* Keep border consistent on hover */
+}
+
+.browse-button:active {
+    background-color: var(--spectrum-global-color-gray-300);
+    border-color: var(--spectrum-alias-border-mid);
+    /* Keep border consistent on active */
 }
 
 
 .status-message {
-    margin-top: 10px;
-    font-size: 11px;
-    padding: 8px;
-    border-radius: 4px;
+    margin-top: var(--spectrum-spacing-100);
+    font-size: var(--spectrum-global-font-size-75);
+    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-100);
+    border-radius: var(--spectrum-alias-border-radius-regular);
     display: none;
-    /* Hidden by default */
+    line-height: 1.4;
 }
 
 .status-message.success {
-    background-color: #2c4e2c;
-    /* Dark green */
-    color: #a8d5a8;
-    border: 1px solid #387838;
+    background-color: var(--spectrum-semantic-positive-color-default);
+    color: var(--spectrum-semantic-positive-color-text-default);
+    border: 1px solid var(--spectrum-semantic-positive-color-default);
     display: block;
 }
 
 .status-message.error {
-    background-color: #5e2e2e;
-    /* Dark red */
-    color: #f0a0a0;
-    border: 1px solid #8b3e3e;
+    background-color: var(--spectrum-semantic-negative-color-default);
+    color: var(--spectrum-semantic-negative-color-text-default);
+    border: 1px solid var(--spectrum-semantic-negative-color-default);
     display: block;
 }
 
+.status-message.info {
+    background-color: var(--spectrum-semantic-notice-color-default);
+    color: var(--spectrum-semantic-notice-color-text-default);
+    border: 1px solid var(--spectrum-semantic-notice-color-default);
+    display: block;
+}
+
+
 .info-message {
-    margin-top: 15px;
-    padding: 10px;
-    background-color: #2f3c4a;
-    /* Dark blueish grey */
-    border: 1px solid #415469;
-    color: #c0d0e0;
-    border-radius: 4px;
-    font-size: 11px;
+    margin-top: var(--spectrum-spacing-200);
+    padding: var(--spectrum-spacing-100);
+    background-color: var(--spectrum-global-color-gray-300);
+    border: 1px solid var(--spectrum-alias-border-dark);
+    color: var(--spectrum-global-color-gray-700);
+    border-radius: var(--spectrum-alias-border-radius-regular);
+    font-size: var(--spectrum-global-font-size-75);
 }
 
 .info-message p {
     margin-top: 0;
-    font-weight: bold;
+    margin-bottom: var(--spectrum-spacing-50);
+}
+
+.info-message p strong {
+    color: var(--spectrum-global-color-gray-800);
+    font-weight: 700;
 }
 
 .info-message ol {
     margin-bottom: 0;
-    padding-left: 20px;
+    padding-left: var(--spectrum-spacing-200);
 }
 
 .info-message li {
-    margin-bottom: 5px;
+    margin-bottom: var(--spectrum-spacing-50);
 }
 
-/* Adjust button width if needed */
-.adobe-button {
+.sub-heading {
+    margin-top: var(--spectrum-spacing-200);
+    margin-bottom: var(--spectrum-spacing-50);
+    font-size: var(--spectrum-global-font-size-75);
+    color: var(--spectrum-global-color-gray-700);
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.placeholder-text {
+    font-style: italic;
+    color: var(--spectrum-global-color-gray-600);
+    font-size: var(--spectrum-global-font-size-75);
+    margin-bottom: var(--spectrum-spacing-100);
+}
+
+.progress-container {
     width: 100%;
-    /* Make main action buttons full width */
-    box-sizing: border-box;
+    background-color: var(--spectrum-global-color-gray-400);
+    border-radius: var(--spectrum-alias-border-radius-regular);
+    margin-top: var(--spectrum-spacing-100);
+    height: 6px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: var(--spectrum-global-color-blue-500);
+    border-radius: var(--spectrum-alias-border-radius-regular);
+    transition: width 0.3s ease-in-out;
+}
+
+.progress-bar.indeterminate {
+    width: 100% !important;
+    background-image: linear-gradient(45deg,
+            rgba(255, 255, 255, 0.15) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.15) 50%,
+            rgba(255, 255, 255, 0.15) 75%,
+            transparent 75%,
+            transparent);
+    background-size: 20px 20px;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    from {
+        background-position: 20px 0;
+    }
+
+    to {
+        background-position: 0 0;
+    }
 }
