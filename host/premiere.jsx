@@ -4,12 +4,10 @@
 
 // Using the global 'app' object directly.
 
+var IS_TEST_MODE = true; // SET TO false FOR FULL PROCESSING
+
 /**
  * Polyfill for String.prototype.padStart (simplified for numbers)
- * @param {number} number The number to pad.
- * @param {number} targetLength The desired length of the resulting string.
- * @param {string} padString The string to pad with (defaults to '0').
- * @returns {string} The padded string.
  */
 function padNumberStart(number, targetLength, padString) {
     padString = String(typeof padString !== 'undefined' ? padString : '0');
@@ -20,7 +18,9 @@ function padNumberStart(number, targetLength, padString) {
     return str;
 }
 
-// Function to set up course directories AND create/open a Premiere Pro project
+/**
+ * Creates the necessary course directory structure and creates/opens the Premiere Pro project.
+ */
 function setupCourseProjectAndDirectories(basePath, courseName) {
     $.writeln("ExtendScript: setupCourseProjectAndDirectories --- START ---");
     $.writeln("ExtendScript: Args - basePath: " + basePath + ", courseName: " + courseName);
@@ -30,6 +30,7 @@ function setupCourseProjectAndDirectories(basePath, courseName) {
             $.writeln("ExtendScript: " + initErrorMsg);
             return initErrorMsg;
         }
+        // ... (rest of the setupCourseProjectAndDirectories function from the previous version in canvas)
         if (!basePath || !courseName) {
             return "Error: Base path or course name is missing in setupCourseProjectAndDirectories.";
         }
@@ -136,60 +137,43 @@ function setupCourseProjectAndDirectories(basePath, courseName) {
 
 /**
  * Processes the Master Plan JSON to create bins and sequences in Premiere Pro.
- * @param {string} masterPlanJSONString The Master Plan data as a JSON string.
- * @param {string} projectPathFromPanel The expected full path to the .prproj file.
- * @returns {string} A status message, prefixed with "Success:" or "Error:".
  */
 function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel) {
     $.writeln("\nExtendScript: processMasterPlanInPremiere --- START ---");
+    $.writeln("ExtendScript: IS_TEST_MODE is: " + IS_TEST_MODE);
     $.writeln("ExtendScript: Target projectPathFromPanel argument: " + projectPathFromPanel);
 
     try {
-        if (!app) { var appErr = "Error: Host app object 'app' is null/undefined at start of processMasterPlanInPremiere."; $.writeln("ExtendScript: " + appErr); return appErr; }
-        $.writeln("ExtendScript: 'app' object exists. Type: " + typeof app);
-        if (typeof app.openDocument !== 'function') { var openDocErr = "Error: app.openDocument is not a function."; $.writeln("ExtendScript: " + openDocErr); return openDocErr; }
-        if (typeof app.project === 'undefined') { var projUndefErr = "Error: app.project is undefined."; $.writeln("ExtendScript: " + projUndefErr); return projUndefErr; }
+        if (!app) { return "Error: Host app object 'app' is null/undefined."; }
+        if (typeof app.project === 'undefined') { return "Error: app.project is undefined."; }
 
         if (!app.project || !app.project.path) {
-            var noProjMsg = "Error: No project is active in Premiere Pro. Please ensure Step 1 was completed and the project is open.";
-            $.writeln("ExtendScript: " + noProjMsg);
-            return noProjMsg;
+            return "Error: No project active. Please complete Step 1 (Setup Project).";
         }
 
         var currentProjectPathNormalized = app.project.path.toString().replace(/\\/g, '/');
         var targetProjectPathNormalized = projectPathFromPanel.replace(/\\/g, '/');
 
         if (currentProjectPathNormalized !== targetProjectPathNormalized) {
-            var pathMismatchMsg = "Error: Active PPro project ('" + app.project.name + "' at '" + currentProjectPathNormalized +
-                                  "') doesn't match expected ('" + targetProjectPathNormalized +
-                                  "'). Ensure correct project from Step 1 is active.";
-            $.writeln("ExtendScript: " + pathMismatchMsg);
-            return pathMismatchMsg;
+            return "Error: Active PPro project ('" + app.project.name + "') doesn't match expected ('" + targetProjectPathNormalized + "'). Ensure correct project is active.";
         }
         $.writeln("ExtendScript: Correct project is active: " + app.project.name);
 
-        if (!app.project.rootItem) {
-            var noRootItemMsg = "Error: Project rootItem is not accessible for project: " + app.project.name;
-            $.writeln("ExtendScript: " + noRootItemMsg);
-            return noRootItemMsg;
-        }
-        $.writeln("ExtendScript: Project root item accessed. Name: " + app.project.rootItem.name);
+        if (!app.project.rootItem) { return "Error: Project rootItem not accessible for: " + app.project.name; }
+        $.writeln("ExtendScript: Project root item accessed: " + app.project.rootItem.name);
 
         var masterPlan;
-        $.writeln("ExtendScript: Attempting to parse Master Plan JSON.");
         if (typeof JSON === 'undefined' || typeof JSON.parse !== 'function') {
-             return "Error: JSON object not available in ExtendScript. json2.js might not be included correctly.";
+             return "Error: JSON object not available in ExtendScript. json2.js missing or not included correctly.";
         }
         try {
             masterPlan = JSON.parse(masterPlanJSONString);
         } catch (jsonError) {
-            return "Error: Could not parse Master Plan JSON. " + jsonError.toString();
+            return "Error: Parsing Master Plan JSON failed: " + jsonError.toString();
         }
 
-        if (!masterPlan || !masterPlan.sections || typeof masterPlan.sections.length === 'undefined') {
-            return "Error: Invalid Master Plan data structure after parsing.";
-        }
-        $.writeln("ExtendScript: Master Plan parsed. Sections found: " + masterPlan.sections.length);
+        if (!masterPlan || !masterPlan.sections) { return "Error: Invalid Master Plan structure."; }
+        $.writeln("ExtendScript: Master Plan parsed. Sections: " + masterPlan.sections.length);
 
         var projectRoot = app.project.rootItem;
         var courseContentBinName = "COURSE - " + masterPlan.courseTitle.replace(/[^\w\s\-]/g, '_').replace(/\s+/g, '_');
@@ -205,20 +189,22 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
 
         var labelColors = [0, 2, 4, 6, 1, 3, 5, 7];
         var lessonsProcessedCount = 0;
+        var sequencesCreatedCount = 0;
 
-        if (masterPlan.sections.length === 0) {
-            return "Success: Master Plan has no sections with matched videos. No bins or sequences created.";
+        var sectionsToProcess = masterPlan.sections;
+        if (IS_TEST_MODE) {
+            sectionsToProcess = masterPlan.sections.slice(0, 2); // Max 2 sections for testing
+            $.writeln("ExtendScript: TEST MODE - Processing max 2 sections.");
         }
 
-        for (var s = 0; s < masterPlan.sections.length; s++) {
-            var sectionData = masterPlan.sections[s];
-            // Use the polyfill padNumberStart for sectionBinName
+        for (var s = 0; s < sectionsToProcess.length; s++) {
+            var sectionData = sectionsToProcess[s];
             var sectionBinName = padNumberStart(sectionData.sectionIndex + 1, 2) + " - " + sectionData.udemySectionTitle.replace(/[^\w\s\-]/g, '_').replace(/\s+/g, '_');
             var sectionBin = findBinByName(courseBin, sectionBinName);
 
             if (!sectionBin) {
-                $.writeln("ExtendScript: Creating section bin: " + sectionBinName + " inside " + courseBin.name);
-                if (typeof courseBin.createBin !== 'function') {$.writeln("Error: courseBin.createBin is not a function for " + courseBin.name); continue;}
+                $.writeln("ExtendScript: Creating section bin: " + sectionBinName);
+                if (typeof courseBin.createBin !== 'function') {$.writeln("Error: courseBin.createBin not function for " + courseBin.name); continue;}
                 sectionBin = courseBin.createBin(sectionBinName);
             }
             if (!sectionBin) { $.writeln("Error creating section bin: " + sectionBinName); continue; }
@@ -226,42 +212,57 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
 
             if (typeof sectionBin.setColorLabel === 'function') {
                  sectionBin.setColorLabel(labelColors[sectionData.sectionIndex % labelColors.length]);
-            } else { $.writeln("Warning: setColorLabel not a function on sectionBin."); }
+            } else { $.writeln("Warning: setColorLabel not function on sectionBin."); }
 
-            if (!sectionData.lessons || sectionData.lessons.length === 0) { continue; }
+            var lessonsToProcessActual = sectionData.lessons;
+            if (IS_TEST_MODE) {
+                lessonsToProcessActual = sectionData.lessons.slice(0, 2); // Max 2 lessons per section for testing
+                $.writeln("ExtendScript: TEST MODE - Processing max 2 lessons for section: " + sectionData.udemySectionTitle);
+            }
+            if (!lessonsToProcessActual || lessonsToProcessActual.length === 0) { continue; }
 
-            for (var l = 0; l < sectionData.lessons.length; l++) {
-                var lessonData = sectionData.lessons[l];
+            for (var l = 0; l < lessonsToProcessActual.length; l++) {
+                var lessonData = lessonsToProcessActual[l];
                 if (!lessonData.matchedVideoFile) continue;
 
-                // Use the polyfill padNumberStart for sequenceName
                 var sequenceName = padNumberStart(lessonData.lessonIndexInSection + 1, 2) + " - " + lessonData.lessonTitle.replace(/[^\w\s\-]/g, '_').replace(/\s+/g, '_');
                 $.writeln("ExtendScript: Preparing sequence: " + sequenceName);
 
                 var existingSequence = findSequenceInBin(sectionBin, sequenceName);
 
                 if(existingSequence){
-                    $.writeln("ExtendScript: Sequence '" + sequenceName + "' already exists in bin '" + sectionBin.name + "'. Skipping creation.");
+                    $.writeln("ExtendScript: Sequence '" + sequenceName + "' already exists. Skipping.");
                     lessonsProcessedCount++;
                     continue;
                 }
 
                 if (!app.project || typeof app.project.createNewSequence !== 'function') {
-                     $.writeln("Error: createNewSequence method not found."); continue;
+                     $.writeln("Error: createNewSequence method not found on app.project."); continue;
                 }
-                if (!sectionBin || typeof sectionBin.nodeId === 'undefined') {
-                    $.writeln("Error: sectionBin invalid for sequence creation: " + (sectionBin ? sectionBin.name : "undefined")); continue;
-                }
-                var newSequence = app.project.createNewSequence(sequenceName, sectionBin.nodeId);
+
+                // Create sequence with default settings (empty string for preset path for silence)
+                var newSequence = app.project.createNewSequence(sequenceName, "");
 
                 if (!newSequence) {
                     $.writeln("Error: Could not create sequence: " + sequenceName); continue;
                 }
-                $.writeln("ExtendScript: Created sequence: " + newSequence.name);
+                $.writeln("ExtendScript: Created sequence: " + newSequence.name + " (ID: " + newSequence.sequenceID + ") at project root.");
+
+                // Move the sequence to the target section bin
+                if (newSequence.projectItem && typeof newSequence.projectItem.moveToBin === 'function' && sectionBin) {
+                    newSequence.projectItem.moveToBin(sectionBin);
+                    $.writeln("ExtendScript: Moved sequence '" + newSequence.name + "' to bin '" + sectionBin.name + "'.");
+                } else {
+                    $.writeln("ExtendScript: Warning - Could not move sequence '" + newSequence.name + "' to target bin. ProjectItem: " + newSequence.projectItem + ", moveToBin: " + (newSequence.projectItem ? newSequence.projectItem.moveToBin : "N/A"));
+                }
+
+                // TODO: Import media and add to timeline
+
                 lessonsProcessedCount++;
+                sequencesCreatedCount++;
             }
         }
-        return "Success: Bins created/verified. " + lessonsProcessedCount + " lesson sequences considered. Media import pending.";
+        return "Success: Bins processed. " + sequencesCreatedCount + " new sequences created. " + lessonsProcessedCount + " total lessons considered. Media import pending.";
     } catch (e) {
         var errorString = "Error: EXCEPTION in processMasterPlanInPremiere: " + e.toString();
         if (e.line) errorString += " on line " + e.line;
@@ -275,9 +276,6 @@ function processMasterPlanInPremiere(masterPlanJSONString, projectPathFromPanel)
 
 /**
  * Helper function to find a bin by name within a parent bin.
- * @param {ProjectItem} parentBin The parent bin item.
- * @param {string} name The name of the bin to find.
- * @returns {ProjectItem|null} The found bin item or null.
  */
 function findBinByName(parentBin, name) {
     if (!parentBin || !parentBin.children) {
@@ -296,13 +294,10 @@ function findBinByName(parentBin, name) {
 
 /**
  * Helper function to find a sequence by name within a specific bin.
- * @param {ProjectItem} targetBin The bin to search within.
- * @param {string} sequenceName The name of the sequence.
- * @returns {Sequence|null} The found sequence object or null.
  */
 function findSequenceInBin(targetBin, sequenceName) {
     if (!app.project || !app.project.sequences || !targetBin || !targetBin.nodeId) {
-        $.writeln("ExtendScript: findSequenceInBin - Invalid arguments or project state.");
+        $.writeln("ExtendScript: findSequenceInBin - Invalid arguments or project state for sequence: " + sequenceName + ", targetBin: " + (targetBin ? targetBin.name : "null"));
         return null;
     }
     for (var i = 0; i < app.project.sequences.numSequences; i++) {
