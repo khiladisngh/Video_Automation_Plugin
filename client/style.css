@@ -1,240 +1,339 @@
-/* Adobe Spectrum Inspired - Dark Theme */
-:root {
-    /* Spectrum Base Colors (Darkest Theme as a reference) */
-    --spectrum-global-color-status: transparent;
-    /* Not directly used, but for context */
-    --spectrum-global-color-gray-100: rgb(38, 38, 38);
-    /* Darker for scrollbar track */
-    --spectrum-global-color-gray-200: rgb(50, 50, 50);
-    /* Panel Background */
-    --spectrum-global-color-gray-300: rgb(62, 62, 62);
-    /* Section Background */
-    --spectrum-global-color-gray-400: rgb(75, 75, 75);
-    /* Borders, UI elements */
-    --spectrum-global-color-gray-500: rgb(90, 90, 90);
-    /* UI element borders, secondary text, scrollbar thumb */
-    --spectrum-global-color-gray-600: rgb(122, 122, 122);
-    /* Secondary text, icons, scrollbar thumb hover */
-    --spectrum-global-color-gray-700: rgb(157, 157, 157);
-    /* Primary text, icons */
-    --spectrum-global-color-gray-800: rgb(202, 202, 202);
-    /* Brighter text */
-    --spectrum-global-color-gray-900: rgb(227, 227, 227);
-    /* Emphasis text */
+/* client/style.css */
+/* Adobe Spectrum-Inspired Theme for CEP Panels */
 
-    --spectrum-global-color-blue-500: rgb(38, 128, 235);
+/* Import Adobe Clean font (ensure font files are available or use a web font service) */
+/* @font-face {
+    font-family: 'Adobe Clean';
+    src: url('../fonts/AdobeClean-Regular.woff2') format('woff2'),
+         url('../fonts/AdobeClean-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+} */
+/* Add other weights and styles as needed */
+
+:root {
+    /* Base Colors (Dark Theme Reference) */
+    --spectrum-global-color-static-gray-100: #1E1E1E;
+    /* Deepest background for scrollbars etc. */
+    --spectrum-global-color-static-gray-200: #252525;
+    /* Panel Background */
+    --spectrum-global-color-static-gray-300: #2F2F2F;
+    /* Section Background / Input Background */
+    --spectrum-global-color-static-gray-400: #393939;
+    /* Borders, UI element slightly lighter */
+    --spectrum-global-color-static-gray-500: #505050;
+    /* UI element borders, secondary text */
+    --spectrum-global-color-static-gray-600: #707070;
+    /* Secondary text, icons, placeholder */
+    --spectrum-global-color-static-gray-700: #959595;
+    /* Primary text, icons */
+    --spectrum-global-color-static-gray-800: #CCCCCC;
+    /* Brighter text */
+    --spectrum-global-color-static-gray-900: #F0F0F0;
+    /* Emphasis text, headings */
+    --spectrum-global-color-static-white: #FFFFFF;
+    --spectrum-global-color-static-black: #000000;
+
+    /* Accent Colors */
+    --spectrum-global-color-static-blue-500: #2680EB;
     /* Primary Action */
-    --spectrum-global-color-blue-600: rgb(20, 115, 230);
+    --spectrum-global-color-static-blue-600: #1473E6;
     /* Primary Action Hover */
-    --spectrum-global-color-blue-700: rgb(13, 96, 197);
+    --spectrum-global-color-static-blue-700: #0D66D0;
     /* Primary Action Active */
 
-    --spectrum-semantic-positive-color-default: rgb(36, 145, 98);
-    /* Success Background */
-    --spectrum-semantic-positive-color-text-default: rgb(212, 240, 228);
-    /* Success Text */
-    --spectrum-semantic-negative-color-default: rgb(204, 50, 49);
-    /* Error Background */
-    --spectrum-semantic-negative-color-text-default: rgb(252, 211, 211);
-    /* Error Text */
-    --spectrum-semantic-notice-color-default: rgb(218, 126, 30);
-    /* Info/Notice Background */
-    --spectrum-semantic-notice-color-text-default: rgb(255, 235, 214);
-    /* Info/Notice Text */
+    /* Semantic Colors */
+    --spectrum-semantic-positive-color-background-default: rgba(36, 145, 98, 0.15);
+    --spectrum-semantic-positive-color-text-default: #4AE4A4;
+    --spectrum-semantic-positive-color-border-default: #249162;
+
+    --spectrum-semantic-negative-color-background-default: rgba(204, 50, 49, 0.15);
+    --spectrum-semantic-negative-color-text-default: #F77676;
+    --spectrum-semantic-negative-color-border-default: #CC3231;
+
+    --spectrum-semantic-notice-color-background-default: rgba(218, 126, 30, 0.15);
+    --spectrum-semantic-notice-color-text-default: #FADDAF;
+    --spectrum-semantic-notice-color-border-default: #DA7E1E;
 
 
     /* Typography */
-    --spectrum-global-font-family-base: 'Adobe Clean', Arial, sans-serif;
-    --spectrum-global-font-size-100: 12px;
+    --spectrum-global-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* Fallback system fonts */
+    /* --spectrum-global-font-family-base: 'Adobe Clean', sans-serif; */
+    --spectrum-font-size-100: 12px;
     /* Default body/component text */
-    --spectrum-global-font-size-75: 11px;
+    --spectrum-font-size-75: 11px;
     /* Small text, labels */
-    --spectrum-global-font-size-200: 14px;
+    --spectrum-font-size-200: 14px;
     /* Section headings */
-    --spectrum-global-font-size-300: 16px;
+    --spectrum-font-size-300: 16px;
     /* Panel title */
+    --spectrum-font-weight-regular: 400;
+    --spectrum-font-weight-bold: 700;
 
-    /* Sizing & Spacing (based on 8px grid, common in Spectrum) */
+    /* Sizing & Spacing (8px grid) */
     --spectrum-spacing-50: 4px;
     --spectrum-spacing-100: 8px;
+    --spectrum-spacing-150: 12px;
     --spectrum-spacing-200: 16px;
     --spectrum-spacing-300: 24px;
 
     /* Borders */
-    --spectrum-alias-border-dark: var(--spectrum-global-color-gray-400);
-    --spectrum-alias-border-mid: var(--spectrum-global-color-gray-500);
-    --spectrum-alias-border-light: var(--spectrum-global-color-gray-300);
-    /* For darker on lighter */
-    --spectrum-alias-border-focus: var(--spectrum-global-color-blue-500);
-    --spectrum-alias-border-radius-regular: 3px;
-    --spectrum-alias-border-radius-small: 2px;
+    --spectrum-border-color-dark: var(--spectrum-global-color-static-gray-400);
+    --spectrum-border-color-mid: var(--spectrum-global-color-static-gray-500);
+    --spectrum-border-color-light: var(--spectrum-global-color-static-gray-300);
+    --spectrum-border-color-focus: var(--spectrum-global-color-static-blue-500);
+    --spectrum-border-radius-regular: 4px;
+    --spectrum-border-radius-small: 2px;
+    --spectrum-border-width-thin: 1px;
+    --spectrum-border-width-thick: 2px;
 
-
-    /* Component Heights (approximate, Spectrum is flexible) */
-    --spectrum-component-height-100: 30px;
+    /* Component Heights */
+    --spectrum-component-height-100: 32px;
     /* Standard component height */
-    --spectrum-component-height-75: 26px;
+    --spectrum-component-height-75: 28px;
     /* Smaller components */
+
+    /* Shadows */
+    --spectrum-shadow-focus-ring: 0 0 0 1px var(--spectrum-global-color-static-blue-500), 0 0 0 3px rgba(38, 128, 235, 0.3);
 }
 
+/* Apply dark theme by default if host app is dark */
+body.dark {
+    /* Variables already defined in :root are fine for dark theme */
+}
+
+/* Apply light theme if host app is light */
+body.light {
+    --spectrum-global-color-static-gray-100: #FAFAFA;
+    --spectrum-global-color-static-gray-200: #FFFFFF;
+    --spectrum-global-color-static-gray-300: #F4F4F4;
+    --spectrum-global-color-static-gray-400: #EAEAEA;
+    --spectrum-global-color-static-gray-500: #D3D3D3;
+    --spectrum-global-color-static-gray-600: #8E8E8E;
+    --spectrum-global-color-static-gray-700: #505050;
+    --spectrum-global-color-static-gray-800: #323232;
+    --spectrum-global-color-static-gray-900: #1E1E1E;
+
+    --spectrum-border-color-dark: var(--spectrum-global-color-static-gray-400);
+    --spectrum-border-color-mid: var(--spectrum-global-color-static-gray-500);
+    --spectrum-border-color-light: var(--spectrum-global-color-static-gray-300);
+
+    --spectrum-semantic-positive-color-background-default: rgba(36, 145, 98, 0.1);
+    --spectrum-semantic-positive-color-text-default: #1A7A53;
+    --spectrum-semantic-positive-color-border-default: #249162;
+
+    --spectrum-semantic-negative-color-background-default: rgba(204, 50, 49, 0.1);
+    --spectrum-semantic-negative-color-text-default: #AE2A2A;
+    --spectrum-semantic-negative-color-border-default: #CC3231;
+
+    --spectrum-semantic-notice-color-background-default: rgba(218, 126, 30, 0.1);
+    --spectrum-semantic-notice-color-text-default: #96580C;
+    --spectrum-semantic-notice-color-border-default: #DA7E1E;
+}
+
+
+/* General Body Styles */
 body.adobe-panel {
     font-family: var(--spectrum-global-font-family-base);
-    background-color: var(--spectrum-global-color-gray-200);
-    color: var(--spectrum-global-color-gray-800);
+    background-color: var(--spectrum-global-color-static-gray-200);
+    color: var(--spectrum-global-color-static-gray-800);
     margin: 0;
-    padding: var(--spectrum-spacing-100);
-    /* Reduced overall padding */
-    font-size: var(--spectrum-global-font-size-100);
+    font-size: var(--spectrum-font-size-100);
     display: flex;
     flex-direction: column;
     height: 100vh;
     box-sizing: border-box;
+    overflow: hidden;
+    /* Prevent body scroll, individual content will scroll */
+}
+
+.panel-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: var(--spectrum-spacing-200);
+    box-sizing: border-box;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--spectrum-spacing-150);
+    border-bottom: var(--spectrum-border-width-thin) solid var(--spectrum-border-color-dark);
+    margin-bottom: var(--spectrum-spacing-200);
+    flex-shrink: 0;
+}
+
+.panel-title {
+    font-size: var(--spectrum-font-size-300);
+    font-weight: var(--spectrum-font-weight-regular);
+    color: var(--spectrum-global-color-static-gray-900);
+    margin: 0;
+}
+
+.panel-content {
+    flex-grow: 1;
     overflow-y: auto;
-    /* This enables scrolling on the body */
+    /* Enable scrolling for the main content area */
+    padding-right: var(--spectrum-spacing-50);
+    /* Space for scrollbar */
 }
 
-/* Custom Scrollbar Styles (Premiere Pro like) */
-body::-webkit-scrollbar {
+
+/* Custom Scrollbar Styles */
+.panel-content::-webkit-scrollbar {
     width: 8px;
-    /* Thinner scrollbar */
 }
 
-body::-webkit-scrollbar-track {
-    background: var(--spectrum-global-color-gray-100);
-    /* Dark track */
-    border-radius: var(--spectrum-alias-border-radius-small);
+.panel-content::-webkit-scrollbar-track {
+    background: var(--spectrum-global-color-static-gray-100);
+    border-radius: var(--spectrum-border-radius-small);
 }
 
-body::-webkit-scrollbar-thumb {
-    background-color: var(--spectrum-global-color-gray-500);
-    /* Darker thumb */
-    border-radius: var(--spectrum-alias-border-radius-small);
-    border: 1px solid var(--spectrum-global-color-gray-100);
-    /* Border to match track for definition */
+.panel-content::-webkit-scrollbar-thumb {
+    background-color: var(--spectrum-global-color-static-gray-500);
+    border-radius: var(--spectrum-border-radius-small);
+    border: 1px solid var(--spectrum-global-color-static-gray-100);
 }
 
-body::-webkit-scrollbar-thumb:hover {
-    background-color: var(--spectrum-global-color-gray-600);
-    /* Slightly lighter on hover */
+.panel-content::-webkit-scrollbar-thumb:hover {
+    background-color: var(--spectrum-global-color-static-gray-600);
 }
 
-/* Apply to textareas as well */
 textarea::-webkit-scrollbar {
     width: 8px;
 }
 
 textarea::-webkit-scrollbar-track {
-    background: var(--spectrum-global-color-gray-100);
-    border-radius: var(--spectrum-alias-border-radius-small);
+    background: var(--spectrum-global-color-static-gray-100);
+    border-radius: var(--spectrum-border-radius-small);
     margin: 2px 0;
-    /* Small margin inside textarea */
 }
 
 textarea::-webkit-scrollbar-thumb {
-    background-color: var(--spectrum-global-color-gray-500);
-    border-radius: var(--spectrum-alias-border-radius-small);
-    border: 1px solid var(--spectrum-global-color-gray-100);
+    background-color: var(--spectrum-global-color-static-gray-500);
+    border-radius: var(--spectrum-border-radius-small);
+    border: 1px solid var(--spectrum-global-color-static-gray-100);
 }
 
 textarea::-webkit-scrollbar-thumb:hover {
-    background-color: var(--spectrum-global-color-gray-600);
+    background-color: var(--spectrum-global-color-static-gray-600);
 }
 
 
-.panel-controls-container {
+/* Step Section Styling */
+.step-section {
+    background-color: var(--spectrum-global-color-static-gray-300);
+    border: var(--spectrum-border-width-thin) solid var(--spectrum-border-color-dark);
+    border-radius: var(--spectrum-border-radius-regular);
+    margin-bottom: var(--spectrum-spacing-300);
+    padding: var(--spectrum-spacing-200);
+}
+
+.step-header {
     display: flex;
-    justify-content: flex-end;
-    /* Aligns button to the right */
-    padding-bottom: var(--spectrum-spacing-100);
-    border-bottom: 1px solid var(--spectrum-alias-border-dark);
-    margin-bottom: var(--spectrum-spacing-100);
+    align-items: center;
+    margin-bottom: var(--spectrum-spacing-200);
+    padding-bottom: var(--spectrum-spacing-150);
+    border-bottom: var(--spectrum-border-width-thin) solid var(--spectrum-border-color-dark);
 }
 
-#container {
+.step-number {
+    background-color: var(--spectrum-global-color-static-blue-500);
+    color: var(--spectrum-global-color-static-white);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--spectrum-font-size-100);
+    font-weight: var(--spectrum-font-weight-bold);
+    margin-right: var(--spectrum-spacing-150);
+    flex-shrink: 0;
+}
+
+.step-title {
+    font-size: var(--spectrum-font-size-200);
+    font-weight: var(--spectrum-font-weight-regular);
+    color: var(--spectrum-global-color-static-gray-900);
+    margin: 0;
+}
+
+.step-body {
     display: flex;
     flex-direction: column;
     gap: var(--spectrum-spacing-200);
-    flex-grow: 1;
-    /* Allows container to take remaining space if body has fixed height */
-    overflow-y: auto;
-    /* If individual sections need to scroll, this might be removed or adjusted */
 }
 
-.panel-title {
-    font-size: var(--spectrum-global-font-size-300);
-    font-weight: 300;
-    margin-top: 0;
-    margin-bottom: var(--spectrum-spacing-100);
-    color: var(--spectrum-global-color-gray-900);
-    /* No border here, moved to panel-controls-container */
-}
-
-.section-container {
-    padding: var(--spectrum-spacing-200);
-    border: 1px solid var(--spectrum-alias-border-light);
-    border-radius: var(--spectrum-alias-border-radius-regular);
-    background-color: var(--spectrum-global-color-gray-300);
-}
-
-.section-container h2 {
-    margin-top: 0;
-    margin-bottom: var(--spectrum-spacing-200);
-    font-size: var(--spectrum-global-font-size-200);
-    font-weight: normal;
-    color: var(--spectrum-global-color-gray-800);
-    border-bottom: 1px solid var(--spectrum-alias-border-dark);
-    padding-bottom: var(--spectrum-spacing-100);
-}
-
+/* Input Groups and Form Elements */
 .input-group {
-    margin-bottom: var(--spectrum-spacing-200);
     display: flex;
     flex-direction: column;
+    gap: var(--spectrum-spacing-50);
 }
 
 .input-group label {
-    margin-bottom: var(--spectrum-spacing-50);
-    font-size: var(--spectrum-global-font-size-75);
-    color: var(--spectrum-global-color-gray-700);
+    font-size: var(--spectrum-font-size-75);
+    color: var(--spectrum-global-color-static-gray-700);
+    font-weight: var(--spectrum-font-weight-bold);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .adobe-input,
 .adobe-textarea {
-    background-color: var(--spectrum-global-color-gray-200);
-    color: var(--spectrum-global-color-gray-800);
-    border: 1px solid var(--spectrum-alias-border-mid);
-    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-100);
-    border-radius: var(--spectrum-alias-border-radius-regular);
-    font-size: var(--spectrum-global-font-size-100);
+    background-color: var(--spectrum-global-color-static-gray-200);
+    /* Slightly lighter than section for contrast */
+    color: var(--spectrum-global-color-static-gray-800);
+    border: var(--spectrum-border-width-thin) solid var(--spectrum-border-color-mid);
+    padding: var(--spectrum-spacing-100) var(--spectrum-spacing-150);
+    border-radius: var(--spectrum-border-radius-regular);
+    font-size: var(--spectrum-font-size-100);
     width: 100%;
     box-sizing: border-box;
     line-height: 1.5;
     min-height: var(--spectrum-component-height-100);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.adobe-input::placeholder {
-    color: var(--spectrum-global-color-gray-600);
+.adobe-input::placeholder,
+.adobe-textarea::placeholder {
+    color: var(--spectrum-global-color-static-gray-600);
     opacity: 1;
-}
-
-
-.adobe-textarea {
-    min-height: calc(var(--spectrum-component-height-100) * 2);
-    resize: vertical;
 }
 
 .adobe-input:focus,
 .adobe-textarea:focus {
     outline: none;
-    border-color: var(--spectrum-alias-border-focus);
-    box-shadow: 0 0 0 1px var(--spectrum-alias-border-focus);
+    border-color: var(--spectrum-border-color-focus);
+    box-shadow: var(--spectrum-shadow-focus-ring);
 }
+
+.adobe-textarea {
+    min-height: calc(var(--spectrum-component-height-100) * 2.5);
+    resize: vertical;
+}
+
+.warning-textarea {
+    background-color: var(--spectrum-semantic-notice-color-background-default);
+    border-color: var(--spectrum-semantic-notice-color-border-default);
+    color: var(--spectrum-semantic-notice-color-text-default);
+}
+
+.warning-textarea:focus {
+    border-color: var(--spectrum-border-color-focus);
+    /* Or a notice-focus color */
+    box-shadow: 0 0 0 1px var(--spectrum-border-color-focus);
+}
+
 
 .input-with-button {
     display: flex;
     align-items: stretch;
+    /* Makes items same height */
 }
 
 .input-with-button .adobe-input {
@@ -242,171 +341,204 @@ textarea::-webkit-scrollbar-thumb:hover {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     border-right-width: 0;
-    min-height: var(--spectrum-component-height-100);
+    /* The button will provide the right border */
 }
 
+.input-with-button .adobe-input:focus {
+    position: relative;
+    /* Ensure focus ring is not clipped */
+    z-index: 1;
+}
+
+
+/* Buttons */
 .adobe-button {
-    background-color: var(--spectrum-global-color-gray-400);
-    color: var(--spectrum-global-color-gray-900);
-    border: 1px solid var(--spectrum-alias-border-mid);
-    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-200);
-    border-radius: var(--spectrum-alias-border-radius-regular);
+    background-color: var(--spectrum-global-color-static-gray-400);
+    color: var(--spectrum-global-color-static-gray-900);
+    border: var(--spectrum-border-width-thin) solid var(--spectrum-border-color-mid);
+    padding: var(--spectrum-spacing-100) var(--spectrum-spacing-200);
+    border-radius: var(--spectrum-border-radius-regular);
     cursor: pointer;
-    font-size: var(--spectrum-global-font-size-100);
+    font-size: var(--spectrum-font-size-100);
+    font-weight: var(--spectrum-font-weight-regular);
     text-align: center;
-    transition: background-color 0.1s ease, border-color 0.1s ease;
-    width: 100%;
-    box-sizing: border-box;
-    margin-top: var(--spectrum-spacing-50);
-    line-height: 1.5;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     min-height: var(--spectrum-component-height-100);
-    display: flex;
+    display: inline-flex;
+    /* Allows alignment and auto-width */
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
+    line-height: 1.2;
+    /* Adjust for better vertical centering of text */
+    user-select: none;
 }
 
 .adobe-button:hover {
-    background-color: var(--spectrum-global-color-gray-500);
+    background-color: var(--spectrum-global-color-static-gray-500);
+    border-color: var(--spectrum-global-color-static-gray-600);
 }
 
 .adobe-button:active {
-    background-color: var(--spectrum-global-color-gray-300);
-    /* Lighter on active for visual feedback */
+    background-color: var(--spectrum-global-color-static-gray-300);
+    border-color: var(--spectrum-border-color-mid);
 }
 
-.adobe-button.primary-action {
-    background-color: var(--spectrum-global-color-blue-500);
-    color: var(--spectrum-global-color-gray-50, white);
-    border-color: transparent;
-}
-
-.adobe-button.primary-action:hover {
-    background-color: var(--spectrum-global-color-blue-600);
-}
-
-.adobe-button.primary-action:active {
-    background-color: var(--spectrum-global-color-blue-700);
-}
-
-.adobe-button.secondary-action {
-    /* Style for less prominent actions like Reload */
-    background-color: var(--spectrum-global-color-gray-300);
-    color: var(--spectrum-global-color-gray-800);
-    border: 1px solid var(--spectrum-alias-border-mid);
-}
-
-.adobe-button.secondary-action:hover {
-    background-color: var(--spectrum-global-color-gray-400);
-}
-
-.adobe-button.secondary-action:active {
-    background-color: var(--spectrum-global-color-gray-200);
+.adobe-button:focus {
+    outline: none;
+    border-color: var(--spectrum-border-color-focus);
+    box-shadow: var(--spectrum-shadow-focus-ring);
+    position: relative;
+    /* Ensure focus ring is not clipped */
+    z-index: 2;
 }
 
 
-.adobe-button.small-button {
-    /* For smaller buttons like Reload */
+.adobe-button.primary {
+    background-color: var(--spectrum-global-color-static-blue-500);
+    color: var(--spectrum-global-color-static-white);
+    border-color: var(--spectrum-global-color-static-blue-500);
+}
+
+.adobe-button.primary:hover {
+    background-color: var(--spectrum-global-color-static-blue-600);
+    border-color: var(--spectrum-global-color-static-blue-600);
+}
+
+.adobe-button.primary:active {
+    background-color: var(--spectrum-global-color-static-blue-700);
+    border-color: var(--spectrum-global-color-static-blue-700);
+}
+
+.adobe-button.secondary {
+    background-color: transparent;
+    color: var(--spectrum-global-color-static-gray-800);
+    border-color: var(--spectrum-border-color-mid);
+}
+
+body.light .adobe-button.secondary {
+    color: var(--spectrum-global-color-static-gray-700);
+}
+
+.adobe-button.secondary:hover {
+    background-color: var(--spectrum-global-color-static-gray-400);
+    border-color: var(--spectrum-border-color-mid);
+}
+
+.adobe-button.secondary:active {
+    background-color: var(--spectrum-global-color-static-gray-300);
+}
+
+
+.adobe-button.small {
     min-height: var(--spectrum-component-height-75);
-    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-100);
-    font-size: var(--spectrum-global-font-size-75);
-    width: auto;
-    /* Allow button to size to content */
-    margin-top: 0;
-    /* Reset margin if used in specific contexts like panel-controls */
+    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-150);
+    font-size: var(--spectrum-font-size-75);
 }
 
-
-.adobe-button:disabled {
-    background-color: var(--spectrum-global-color-gray-300);
-    border-color: var(--spectrum-global-color-gray-400);
-    color: var(--spectrum-global-color-gray-600);
-    cursor: default;
+.adobe-button.full-width {
+    width: 100%;
 }
+
+.adobe-button:disabled,
+.adobe-button.disabled {
+    /* Add .disabled class for manual disabling */
+    background-color: var(--spectrum-global-color-static-gray-300);
+    border-color: var(--spectrum-global-color-static-gray-400);
+    color: var(--spectrum-global-color-static-gray-600);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+body.light .adobe-button:disabled,
+body.light .adobe-button.disabled {
+    background-color: var(--spectrum-global-color-static-gray-300);
+    border-color: var(--spectrum-global-color-static-gray-400);
+    color: var(--spectrum-global-color-static-gray-500);
+}
+
 
 .browse-button {
-    width: auto;
-    min-width: 75px;
-    flex-grow: 0;
     flex-shrink: 0;
-    margin-top: 0;
-    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-100);
-    font-size: var(--spectrum-global-font-size-75);
-    min-height: var(--spectrum-component-height-100);
-    line-height: 1.5;
+    /* Prevent shrinking */
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
-    border: 1px solid var(--spectrum-alias-border-mid);
-    border-left-width: 1px;
-    background-color: var(--spectrum-global-color-gray-400);
-    color: var(--spectrum-global-color-gray-800);
-    cursor: pointer;
-    transition: background-color 0.1s ease, border-color 0.1s ease;
-    text-align: center;
-}
-
-.browse-button:hover {
-    background-color: var(--spectrum-global-color-gray-500);
-    border-color: var(--spectrum-alias-border-mid);
-}
-
-.browse-button:active {
-    background-color: var(--spectrum-global-color-gray-300);
-    border-color: var(--spectrum-alias-border-mid);
+    border-left-width: var(--spectrum-border-width-thin);
+    /* Ensure it has a left border */
+    margin-left: -1px;
+    /* Overlap with input's border */
 }
 
 
+/* Status & Info Messages */
 .status-message {
-    margin-top: var(--spectrum-spacing-100);
-    font-size: var(--spectrum-global-font-size-75);
-    padding: var(--spectrum-spacing-50) var(--spectrum-spacing-100);
-    border-radius: var(--spectrum-alias-border-radius-regular);
+    margin-top: var(--spectrum-spacing-150);
+    font-size: var(--spectrum-font-size-75);
+    padding: var(--spectrum-spacing-100) var(--spectrum-spacing-150);
+    border-radius: var(--spectrum-border-radius-regular);
+    border: var(--spectrum-border-width-thin) solid transparent;
     display: none;
+    /* Hidden by default */
     line-height: 1.4;
+    white-space: pre-wrap;
+    /* Preserve line breaks from JS */
 }
 
 .status-message.success {
-    background-color: var(--spectrum-semantic-positive-color-default);
+    background-color: var(--spectrum-semantic-positive-color-background-default);
     color: var(--spectrum-semantic-positive-color-text-default);
-    border: 1px solid var(--spectrum-semantic-positive-color-default);
+    border-color: var(--spectrum-semantic-positive-color-border-default);
     display: block;
 }
 
 .status-message.error {
-    background-color: var(--spectrum-semantic-negative-color-default);
+    background-color: var(--spectrum-semantic-negative-color-background-default);
     color: var(--spectrum-semantic-negative-color-text-default);
-    border: 1px solid var(--spectrum-semantic-negative-color-default);
+    border-color: var(--spectrum-semantic-negative-color-border-default);
     display: block;
 }
 
-.status-message.info {
-    background-color: var(--spectrum-semantic-notice-color-default);
+.status-message.info,
+.status-message.warning {
+    /* Treat info and warning similarly for now */
+    background-color: var(--spectrum-semantic-notice-color-background-default);
     color: var(--spectrum-semantic-notice-color-text-default);
-    border: 1px solid var(--spectrum-semantic-notice-color-default);
+    border-color: var(--spectrum-semantic-notice-color-border-default);
     display: block;
 }
-
 
 .info-message {
+    /* For the "Next Steps" box */
     margin-top: var(--spectrum-spacing-200);
-    padding: var(--spectrum-spacing-100);
-    background-color: var(--spectrum-global-color-gray-300);
-    border: 1px solid var(--spectrum-alias-border-dark);
-    color: var(--spectrum-global-color-gray-700);
-    border-radius: var(--spectrum-alias-border-radius-regular);
-    font-size: var(--spectrum-global-font-size-75);
+    padding: var(--spectrum-spacing-150);
+    background-color: rgba(38, 128, 235, 0.1);
+    /* Light blue background */
+    border: var(--spectrum-border-width-thin) solid var(--spectrum-global-color-static-blue-500);
+    color: var(--spectrum-global-color-static-gray-800);
+    border-radius: var(--spectrum-border-radius-regular);
+    font-size: var(--spectrum-font-size-75);
+}
+
+body.light .info-message {
+    color: var(--spectrum-global-color-static-gray-700);
 }
 
 .info-message p {
     margin-top: 0;
-    margin-bottom: var(--spectrum-spacing-50);
+    margin-bottom: var(--spectrum-spacing-100);
 }
 
 .info-message p strong {
-    color: var(--spectrum-global-color-gray-800);
-    font-weight: 700;
+    color: var(--spectrum-global-color-static-gray-900);
+    font-weight: var(--spectrum-font-weight-bold);
+}
+
+body.light .info-message p strong {
+    color: var(--spectrum-global-color-static-gray-800);
 }
 
 .info-message ol {
+    margin-top: var(--spectrum-spacing-50);
     margin-bottom: 0;
     padding-left: var(--spectrum-spacing-200);
 }
@@ -415,27 +547,38 @@ textarea::-webkit-scrollbar-thumb:hover {
     margin-bottom: var(--spectrum-spacing-50);
 }
 
+
+/* Sub-Headings and Dividers */
 .sub-heading {
     margin-top: var(--spectrum-spacing-200);
-    margin-bottom: var(--spectrum-spacing-50);
-    font-size: var(--spectrum-global-font-size-75);
-    color: var(--spectrum-global-color-gray-700);
-    font-weight: normal;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    margin-bottom: var(--spectrum-spacing-100);
+    font-size: var(--spectrum-font-size-100);
+    color: var(--spectrum-global-color-static-gray-700);
+    font-weight: var(--spectrum-font-weight-bold);
+}
+
+body.light .sub-heading {
+    color: var(--spectrum-global-color-static-gray-600);
+}
+
+.section-divider {
+    border: none;
+    border-top: var(--spectrum-border-width-thin) solid var(--spectrum-border-color-dark);
+    margin: var(--spectrum-spacing-300) 0;
 }
 
 .placeholder-text {
     font-style: italic;
-    color: var(--spectrum-global-color-gray-600);
-    font-size: var(--spectrum-global-font-size-75);
+    color: var(--spectrum-global-color-static-gray-600);
+    font-size: var(--spectrum-font-size-75);
     margin-bottom: var(--spectrum-spacing-100);
 }
 
+/* Progress Bar */
 .progress-container {
     width: 100%;
-    background-color: var(--spectrum-global-color-gray-400);
-    border-radius: var(--spectrum-alias-border-radius-regular);
+    background-color: var(--spectrum-global-color-static-gray-400);
+    border-radius: var(--spectrum-border-radius-regular);
     margin-top: var(--spectrum-spacing-100);
     height: 6px;
     overflow: hidden;
@@ -444,22 +587,22 @@ textarea::-webkit-scrollbar-thumb:hover {
 .progress-bar {
     width: 0%;
     height: 100%;
-    background-color: var(--spectrum-global-color-blue-500);
-    border-radius: var(--spectrum-alias-border-radius-regular);
+    background-color: var(--spectrum-global-color-static-blue-500);
+    border-radius: var(--spectrum-border-radius-regular);
+    /* Match container for smooth look */
     transition: width 0.3s ease-in-out;
 }
 
 .progress-bar.indeterminate {
     width: 100% !important;
+    /* Full width for indeterminate */
     background-image: linear-gradient(45deg,
-            rgba(255, 255, 255, 0.15) 25%,
-            transparent 25%,
-            transparent 50%,
-            rgba(255, 255, 255, 0.15) 50%,
-            rgba(255, 255, 255, 0.15) 75%,
-            transparent 75%,
+            rgba(255, 255, 255, 0.15) 25%, transparent 25%,
+            transparent 50%, rgba(255, 255, 255, 0.15) 50%,
+            rgba(255, 255, 255, 0.15) 75%, transparent 75%,
             transparent);
     background-size: 20px 20px;
+    /* Size of the stripes */
     animation: progress-bar-stripes 1s linear infinite;
 }
 

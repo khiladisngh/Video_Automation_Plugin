@@ -2,107 +2,123 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="client/style.css">
     <script type="text/javascript" src="CSInterface.js"></script>
-    <script type="text/javascript" src="client/main.js"></script>
-    <title>ECCouncil Udemy Automator</title>
+    <title>Video Automation Hub</title>
 </head>
 <body class="adobe-panel">
-    <div id="panel-controls" class="panel-controls-container">
-        <button id="reloadPluginButton" class="adobe-button secondary-action small-button">Reload Plugin</button>
+    <div class="panel-container">
+        <header class="panel-header">
+            <h1 class="panel-title">Video Automation Hub</h1>
+            <button id="reloadPluginButton" class="adobe-button secondary small">Reload Plugin</button>
+        </header>
+
+        <main class="panel-content">
+            <section class="step-section" id="step1">
+                <div class="step-header">
+                    <span class="step-number">1</span>
+                    <h2 class="step-title">Project Setup</h2>
+                </div>
+                <div class="step-body">
+                    <div class="input-group">
+                        <label for="courseNameInput">Course Name:</label>
+                        <input type="text" id="courseNameInput" class="adobe-input" placeholder="e.g., Awesome Course Title">
+                    </div>
+                    <div class="input-group">
+                        <label for="baseDirectoryInput">Base Directory for Courses:</label>
+                        <div class="input-with-button">
+                            <input type="text" id="baseDirectoryInput" class="adobe-input" placeholder="e.g., D:/Courses">
+                            <button id="browseBaseDirButton" class="adobe-button browse-button">Browse...</button>
+                        </div>
+                    </div>
+                    <button id="setupProjectButton" class="adobe-button primary full-width">Create/Open Project & Folders</button>
+                    <div id="dirSetupProgressContainer" class="progress-container" style="display:none;">
+                        <div id="dirSetupProgressBar" class="progress-bar"></div>
+                    </div>
+                    <div id="dirSetupStatus" class="status-message"></div>
+                    <div id="nextStepsMessage" class="info-message" style="display:none;">
+                        <p><strong>Project Setup Complete!</strong></p>
+                        <p id="projectStatusSubMessage">A Premiere Pro project has been prepared.</p>
+                        <p><strong>Next Steps:</strong></p>
+                        <ol>
+                            <li>Place raw video lectures into <strong>'_01_RAW_VIDEOS'</strong>.</li>
+                            <li>Place slide materials into <strong>'_02_SLIDES'</strong>.</li>
+                            <li>Proceed to Step 2.</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section class="step-section" id="step2">
+                <div class="step-header">
+                    <span class="step-number">2</span>
+                    <h2 class="step-title">Data Fetching & Planning</h2>
+                </div>
+                <div class="step-body">
+                    <div class="input-group">
+                        <label for="udemyUrlInput">Udemy Course URL:</label>
+                        <input type="text" id="udemyUrlInput" class="adobe-input" placeholder="Enter full Udemy course URL">
+                    </div>
+                    <button id="fetchUdemyDataButton" class="adobe-button full-width">Fetch Course Structure</button>
+                    <div id="scraperStatus" class="status-message"></div>
+
+                    <div class="input-group">
+                        <label for="rawVideoPathInput">Raw Videos Path (_01_RAW_VIDEOS):</label>
+                         <div class="input-with-button">
+                            <input type="text" id="rawVideoPathInput" class="adobe-input" placeholder="Path to _01_RAW_VIDEOS folder">
+                            <button id="browseRawVideoPathButton" class="adobe-button browse-button">Browse...</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="slidePathInput">Slides Path (_02_SLIDES):</label>
+                        <div class="input-with-button">
+                            <input type="text" id="slidePathInput" class="adobe-input" placeholder="Path to _02_SLIDES folder">
+                            <button id="browseSlidePathButton" class="adobe-button browse-button">Browse...</button>
+                        </div>
+                    </div>
+                    <button id="listLocalFilesButton" class="adobe-button full-width">List Videos & Get Durations</button>
+                    <div id="localFileProgressContainer" class="progress-container" style="display:none;">
+                        <div id="localFileProgressBar" class="progress-bar"></div>
+                    </div>
+                    <div id="localFileStatus" class="status-message"></div>
+
+                    <hr class="section-divider">
+
+                    <button id="validateAndPlanButton" class="adobe-button primary full-width">Validate & Generate Master Plan</button>
+                    <button id="regeneratePlanButton" class="adobe-button secondary full-width" style="display:none; margin-top: 10px;">Confirm Slide Removal & Regenerate</button>
+                    <div id="planStatus" class="status-message"></div>
+
+                    <h3 class="sub-heading">Scraped Udemy Data (Raw)</h3>
+                    <textarea id="udemyDataDisplay" class="adobe-textarea" rows="5" readonly></textarea>
+
+                    <h3 class="sub-heading">Local Video Files (Raw)</h3>
+                    <textarea id="localVideoFilesDisplay" class="adobe-textarea" rows="3" readonly></textarea>
+
+                    <h3 class="sub-heading">Unmatched Local Videos</h3>
+                    <textarea id="unmatchedVideosDisplay" class="adobe-textarea warning-textarea" rows="3" readonly></textarea>
+
+                    <h3 class="sub-heading">Generated Master Plan (Preview)</h3>
+                    <textarea id="masterPlanDisplay" class="adobe-textarea" rows="7" readonly></textarea>
+                </div>
+            </section>
+
+             <section class="step-section" id="step3">
+                <div class="step-header">
+                    <span class="step-number">3</span>
+                    <h2 class="step-title">Premiere Pro Automation</h2>
+                </div>
+                <div class="step-body">
+                    <p class="placeholder-text"><em>Uses the generated Master Plan to automate Premiere Pro tasks.</em></p>
+                    <button id="generatePremiereProjectButton" class="adobe-button primary full-width" disabled>Generate Bins & Sequences</button>
+                    <div id="premiereProgressContainer" class="progress-container" style="display:none;">
+                        <div id="premiereProgressBar" class="progress-bar"></div>
+                    </div>
+                    <div id="premiereStatus" class="status-message"></div>
+                </div>
+            </section>
+        </main>
     </div>
-
-    <div id="container">
-        <h1 class="panel-title">Udemy Course Automator</h1>
-
-        <div class="section-container">
-            <h2>Step 1: Setup Project Folders & Premiere Project</h2>
-            <div class="input-group">
-                <label for="courseNameInput">Course Name:</label>
-                <input type="text" id="courseNameInput" class="adobe-input" placeholder="e.g., Wireshark na Pratica">
-            </div>
-            <div class="input-group">
-                <label for="baseDirectoryInput">Base Directory for Courses:</label>
-                <div class="input-with-button">
-                    <input type="text" id="baseDirectoryInput" class="adobe-input" placeholder="e.g., H:/Temp/projects">
-                    <button id="browseBaseDirButton" class="adobe-button browse-button">Browse...</button>
-                </div>
-            </div>
-            <button id="setupProjectButton" class="adobe-button primary-action button-full-width">Create/Open Folders & PPro Project</button>
-            <div id="dirSetupProgressContainer" class="progress-container" style="display:none;">
-                <div id="dirSetupProgressBar" class="progress-bar"></div>
-            </div>
-            <div id="dirSetupStatus" class="status-message"></div>
-            <div id="nextStepsMessage" class="info-message" style="display:none;">
-                <p><strong>Project Setup Complete!</strong></p>
-                <p id="projectStatusSubMessage">A Premiere Pro project has been prepared.</p>
-                <p><strong>Next Steps:</strong></p>
-                <ol>
-                    <li>Place all downloaded raw video lectures into the <strong>'_01_RAW_VIDEOS'</strong> folder.</li>
-                    <li>Place all slide materials into the <strong>'_02_SLIDES'</strong> folder.</li>
-                    <li>Proceed to Step 2.</li>
-                </ol>
-            </div>
-        </div>
-
-        <div class="section-container">
-            <h2>Step 2: Fetch Data, Validate Files & Prepare Plan</h2>
-            <div class="input-group">
-                <label for="udemyUrlInput">Udemy Course URL:</label>
-                <input type="text" id="udemyUrlInput" class="adobe-input" placeholder="Enter full Udemy course URL">
-            </div>
-            <button id="fetchUdemyDataButton" class="adobe-button button-full-width">Fetch Course Structure from Udemy</button>
-            <div id="scraperStatus" class="status-message" style="min-height: 20px;"></div>
-
-            <div class="input-group">
-                <label for="rawVideoPathInput">Base Path to Raw Video Files (_01_RAW_VIDEOS):</label>
-                 <div class="input-with-button">
-                    <input type="text" id="rawVideoPathInput" class="adobe-input" placeholder="Path to _01_RAW_VIDEOS folder">
-                    <button id="browseRawVideoPathButton" class="adobe-button browse-button">Browse...</button>
-                </div>
-            </div>
-            <div class="input-group">
-                <label for="slidePathInput">Base Path to Slide Files (_02_SLIDES):</label>
-                <div class="input-with-button">
-                    <input type="text" id="slidePathInput" class="adobe-input" placeholder="Path to _02_SLIDES folder">
-                    <button id="browseSlidePathButton" class="adobe-button browse-button">Browse...</button>
-                </div>
-            </div>
-            <button id="listLocalFilesButton" class="adobe-button button-full-width" style="margin-top: 5px;">List Local Video Files & Get Durations</button>
-            <div id="localFileProgressContainer" class="progress-container" style="display:none;">
-                <div id="localFileProgressBar" class="progress-bar"></div>
-            </div>
-            <div id="localFileStatus" class="status-message" style="min-height: 20px;"></div>
-
-            <hr style="border: none; border-top: 1px solid var(--spectrum-alias-border-dark); margin: var(--spectrum-spacing-200) 0;">
-
-            <button id="validateAndPlanButton" class="adobe-button primary-action button-full-width">Validate Slides & Generate Master Plan</button>
-            <button id="regeneratePlanButton" class="adobe-button secondary-action button-full-width" style="display:none; margin-top: 10px;">Confirm Slides Removed & Regenerate Plan</button>
-            <div id="planStatus" class="status-message" style="min-height: 20px;"></div>
-
-            <h3 class="sub-heading" style="margin-top:var(--spectrum-spacing-200);">Scraped Udemy Course Structure (Raw):</h3>
-            <textarea id="udemyDataDisplay" class="adobe-textarea" rows="6" readonly></textarea>
-
-            <h3 class="sub-heading">Local Video Files Found (Raw):</h3>
-            <textarea id="localVideoFilesDisplay" class="adobe-textarea" rows="3" readonly></textarea>
-
-            <h3 class="sub-heading" style="margin-top:var(--spectrum-spacing-100);">Unmatched Local Video Files:</h3>
-            <textarea id="unmatchedVideosDisplay" class="adobe-textarea" rows="3" readonly style="background-color: var(--spectrum-global-color-gray-250); border-color: var(--spectrum-semantic-notice-color-default);"></textarea>
-
-
-            <h3 class="sub-heading">Generated Master Plan (JSON Preview):</h3>
-            <textarea id="masterPlanDisplay" class="adobe-textarea" rows="8" readonly></textarea>
-        </div>
-
-         <div class="section-container">
-            <h2>Step 3: Generate Premiere Pro Project Content</h2>
-            <p class="placeholder-text"><em>(This will use the generated Master Plan JSON)</em></p>
-            <button id="generatePremiereProjectButton" class="adobe-button primary-action button-full-width" disabled>Generate Bins & Sequences</button>
-            <div id="premiereProgressContainer" class="progress-container" style="display:none;">
-                <div id="premiereProgressBar" class="progress-bar"></div>
-            </div>
-            <div id="premiereStatus" class="status-message" style="min-height: 20px;"></div>
-        </div>
-    </div>
+    <script type="text/javascript" src="client/main.js"></script>
 </body>
 </html>
