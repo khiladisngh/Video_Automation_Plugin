@@ -3,7 +3,7 @@ window.onload = function() {
     var csInterface = new CSInterface();
 
     // --- Client-side Test Mode Flag ---
-    const IS_CLIENT_TEST_MODE = true;
+    const IS_CLIENT_TEST_MODE = false;
 
     const hardcodedTestMasterPlanJsonString = `{
   "courseTitle": "Wireshark na Prática: Analisando Ataques na Rede",
@@ -15,7 +15,7 @@ window.onload = function() {
     {
       "udemySectionTitle": "Introdução ao Curso e Nivelamento",
       "sectionIndex": 0,
-      "sectionIntroSlide": "Slide3.TIF",
+      "sectionIntroSlide": "Slide21.TIF",
       "lessons": [
         {
           "lessonTitle": "Apresentação do curso e objetivos",
@@ -23,9 +23,9 @@ window.onload = function() {
           "lessonIndexInSection": 2,
           "blankSlide1": "Slide1.TIF",
           "blankSlide2": "Slide2.TIF",
-          "lessonIntroSlide": "Slide4.TIF",
+          "lessonIntroSlide": "Slide3.TIF",
           "matchedVideoFile": "SEC-T01-P01.mp4",
-          "lessonOutroSlide": "Slide5.TIF",
+          "lessonOutroSlide": "Slide4.TIF",
           "globalLessonIndex": 0
         }
       ]
@@ -79,7 +79,7 @@ window.onload = function() {
     const path = require('path');
 
     // --- DOM Elements ---
-    var reloadPluginButton = document.getElementById('reloadPluginButton'); // New button
+    var reloadPluginButton = document.getElementById('reloadPluginButton');
     var courseNameInput = document.getElementById('courseNameInput');
     var baseDirectoryInput = document.getElementById('baseDirectoryInput');
     var browseBaseDirButton = document.getElementById('browseBaseDirButton');
@@ -209,6 +209,8 @@ window.onload = function() {
             });
         });
     }
+
+    // Kept for potential future use, but not used in current matching logic.
     function levenshteinDistance(a = "", b = "") {
         if (a.length === 0) return b.length;
         if (b.length === 0) return a.length;
@@ -416,7 +418,7 @@ window.onload = function() {
                         return fetchVideoDurationPromise(filePath, fileName)
                             .then(durationSeconds => ({
                                 fileName: fileName,
-                                durationSeconds: durationSeconds,
+                                durationSeconds: durationSeconds - 1, // Adjusted for compensation
                                 isMatched: false,
                                 error: null
                             }))
@@ -548,12 +550,12 @@ window.onload = function() {
 
             let udemyLessonsForMatching = [];
             currentUdemyData.sections.forEach((section, sectionIdx) => {
-                section.lessons.forEach((lesson, lessonIdx) => {
+                section.lessons.forEach((lesson, lessonIdx_actual) => {
                     udemyLessonsForMatching.push({
                         udemyTitle: lesson.lessonTitle,
                         udemyDurationSeconds: parseUdemyDurationToSeconds(lesson.duration),
                         originalSectionIndex: sectionIdx,
-                        originalLessonIndexInSection: lessonIdx,
+                        originalLessonIndexInSection: lesson.lessonIndexInSection !== undefined ? lesson.lessonIndexInSection : lessonIdx_actual,
                         udemySectionTitle: section.sectionTitle,
                         isMatched: false,
                         matchedLocalFile: null,
@@ -562,55 +564,45 @@ window.onload = function() {
                 });
             });
 
-            const DURATION_TOLERANCE_SECONDS = 1;
+            const DURATION_TOLERANCE_SECONDS = 0;   // Exact match required AFTER compensation
             let successfulMatches = 0;
             let availableLocalVideos = localVideoDetails.map(v => ({ ...v, isMatched: false }));
 
-            console.log("--- Starting Video Matching Process ---");
+            console.log("--- Starting Video Matching Process  ---");
             udemyLessonsForMatching.forEach(udemyLesson => {
                 if (udemyLesson.isMatched) return;
 
                 let bestMatch = null;
-                let smallestDiff = Infinity;
-                let bestTitleDistance = Infinity;
+                // Since tolerance is 0, smallestAbsDiff will effectively be 0 if a match is found.
+                // We just need to find *a* match, the first one encountered will do if multiple have 0 diff.
+                // let smallestAbsDiff = Infinity; // Not strictly needed if tolerance is 0
 
                 console.log(`Attempting to match Udemy Lesson: "${udemyLesson.udemyTitle}" (Udemy Duration: ${udemyLesson.udemyDurationSeconds}s)`);
 
-                availableLocalVideos.forEach(localVideo => {
-                    if (localVideo.isMatched || localVideo.durationSeconds === 0 || localVideo.error) return;
+                for (let i = 0; i < availableLocalVideos.length; i++) {
+                    const localVideo = availableLocalVideos[i];
+                    if (localVideo.isMatched || localVideo.durationSeconds === 0 || localVideo.error) continue;
 
-                    const durationDiff = Math.abs(udemyLesson.udemyDurationSeconds - localVideo.durationSeconds);
-                    console.log(`  Comparing with Local Video: "${localVideo.fileName}" (Local Duration: ${localVideo.durationSeconds}s) -> Diff: ${durationDiff}s`);
+                    const absDurationDiff = Math.abs(udemyLesson.udemyDurationSeconds - localVideo.durationSeconds);
+                    console.log(`  Comparing with Local Video: "${localVideo.fileName}" (Local Raw: ${localVideo.durationSeconds}s, -> Abs Diff: ${absDurationDiff}s`);
 
-                    if (durationDiff <= DURATION_TOLERANCE_SECONDS) {
-                        const titleDistance = levenshteinDistance(
-                            path.basename(localVideo.fileName, path.extname(localVideo.fileName)).toLowerCase(),
-                            udemyLesson.udemyTitle.toLowerCase()
-                        );
-
-                        if (durationDiff < smallestDiff) {
-                            smallestDiff = durationDiff;
-                            bestTitleDistance = titleDistance;
-                            bestMatch = localVideo;
-                            console.log(`    New best match (by duration): ${localVideo.fileName} (Diff: ${durationDiff}, TitleDist: ${titleDistance})`);
-                        } else if (durationDiff === smallestDiff) {
-                            if (titleDistance < bestTitleDistance) {
-                                bestTitleDistance = titleDistance;
-                                bestMatch = localVideo;
-                                console.log(`    New best match (tied duration, better title): ${localVideo.fileName} (Diff: ${durationDiff}, TitleDist: ${titleDistance})`);
-                            }
-                        }
+                    if (absDurationDiff <= DURATION_TOLERANCE_SECONDS) { // This will be true only if absDurationDiff is 0
+                        bestMatch = localVideo;
+                        console.log(`    MATCH FOUND: ${localVideo.fileName} (Abs Diff: ${absDurationDiff}s)`);
+                        break; // Found an exact match, no need to check further for this Udemy lesson
                     }
-                });
+                }
 
                 if (bestMatch) {
                     udemyLesson.matchedLocalFile = bestMatch.fileName;
+                    // Mark the chosen local video as matched in the availableLocalVideos array
                     const matchedVideoInAvailable = availableLocalVideos.find(v => v.fileName === bestMatch.fileName);
                     if(matchedVideoInAvailable) matchedVideoInAvailable.isMatched = true;
+
                     successfulMatches++;
                     console.log(`  MATCHED: Udemy "${udemyLesson.udemyTitle}" with Local "${bestMatch.fileName}"`);
                 } else {
-                    console.log(`  NO MATCH for Udemy "${udemyLesson.udemyTitle}" (Duration: ${udemyLesson.udemyDurationSeconds}s)`);
+                    console.log(`  NO EXACT MATCH for Udemy "${udemyLesson.udemyTitle}" (Target Duration with compensation: ${udemyLesson.udemyDurationSeconds}s)`);
                 }
             });
             console.log("--- Video Matching Process Ended ---");
@@ -692,35 +684,68 @@ window.onload = function() {
 
             let sequentialSlideAllocatorIndex = 3;
             const getSlideFile = (slideNum) => {
-                return foundSlidesMapping["Slide" + slideNum] || ("Slide" + slideNum + ".tiff");
+                return foundSlidesMapping["Slide" + slideNum] || null;
             };
-
 
             currentUdemyData.sections.forEach((udemySectionFromScrape, sectionIdx) => {
                 let lessonsForThisSectionInMasterPlan = [];
-                let firstMatchedVideoInSectionFound = false;
+                let firstVideoLessonInSectionMasterPlanGenerated = false;
+                let allocatedSectionIntroSlide = null;
 
-                udemySectionFromScrape.lessons.forEach((udemyLessonFromScrape, lessonIdxInSection) => {
+                const hasMatchedVideoInSection = udemySectionFromScrape.lessons.some(lesson => {
+                    const currentLessonOriginalIndexCheck = lesson.lessonIndexInSection !== undefined
+                                                       ? lesson.lessonIndexInSection
+                                                       : udemySectionFromScrape.lessons.indexOf(lesson);
+                    const matchedInfo = udemyLessonsForMatching.find(
+                        ul => ul.originalSectionIndex === sectionIdx &&
+                              ul.originalLessonIndexInSection === currentLessonOriginalIndexCheck
+                    );
+                    return matchedInfo && matchedInfo.matchedLocalFile;
+                });
+
+                if (hasMatchedVideoInSection) {
+                    allocatedSectionIntroSlide = getSlideFile(sequentialSlideAllocatorIndex++);
+                    if (!allocatedSectionIntroSlide) {
+                        console.warn("MasterPlan Gen: Could not allocate Section Intro Slide for section: " + udemySectionFromScrape.sectionTitle + " (expected Slide" + (sequentialSlideAllocatorIndex -1) + ")");
+                    }
+                }
+
+                udemySectionFromScrape.lessons.forEach((udemyLessonFromScrape, lessonIdxInSection_actual) => {
+                    const currentLessonOriginalIndex = udemyLessonFromScrape.lessonIndexInSection !== undefined
+                                                       ? udemyLessonFromScrape.lessonIndexInSection
+                                                       : lessonIdxInSection_actual;
+
                     const matchedUdemyLessonInfo = udemyLessonsForMatching.find(
-                        ul => ul.originalSectionIndex === sectionIdx && ul.originalLessonIndexInSection === lessonIdxInSection
+                        ul => ul.originalSectionIndex === sectionIdx && ul.originalLessonIndexInSection === currentLessonOriginalIndex
                     );
 
                     if (matchedUdemyLessonInfo && matchedUdemyLessonInfo.matchedLocalFile) {
                         let lessonEntry = {
                             lessonTitle: matchedUdemyLessonInfo.udemyTitle,
                             udemyDuration: matchedUdemyLessonInfo.originalUdemyDurationStr,
-                            lessonIndexInSection: lessonIdxInSection,
+                            lessonIndexInSection: currentLessonOriginalIndex,
                             blankSlide1: null,
                             blankSlide2: null,
-                            lessonIntroSlide: getSlideFile(sequentialSlideAllocatorIndex++),
+                            lessonIntroSlide: null,
                             matchedVideoFile: matchedUdemyLessonInfo.matchedLocalFile,
-                            lessonOutroSlide: getSlideFile(sequentialSlideAllocatorIndex++)
+                            lessonOutroSlide: null
                         };
 
-                        if (!firstMatchedVideoInSectionFound) {
+                        lessonEntry.lessonIntroSlide = getSlideFile(sequentialSlideAllocatorIndex++);
+                        if (!lessonEntry.lessonIntroSlide) {
+                             console.warn("MasterPlan Gen: Could not allocate Lesson Intro Slide for lesson: " + lessonEntry.lessonTitle + " (expected Slide" + (sequentialSlideAllocatorIndex -1) + ")");
+                        }
+                        lessonEntry.lessonOutroSlide = getSlideFile(sequentialSlideAllocatorIndex++);
+                         if (!lessonEntry.lessonOutroSlide) {
+                             console.warn("MasterPlan Gen: Could not allocate Lesson Outro Slide for lesson: " + lessonEntry.lessonTitle + " (expected Slide" + (sequentialSlideAllocatorIndex -1) + ")");
+                        }
+
+                        if (!firstVideoLessonInSectionMasterPlanGenerated) {
                             lessonEntry.blankSlide1 = getSlideFile(1);
                             lessonEntry.blankSlide2 = getSlideFile(2);
-                            firstMatchedVideoInSectionFound = true;
+                            if (!lessonEntry.blankSlide1) console.warn("MasterPlan Gen: Slide1.TIF (or variant) not found in mapping for first video lesson.");
+                            if (!lessonEntry.blankSlide2) console.warn("MasterPlan Gen: Slide2.TIF (or variant) not found in mapping for first video lesson.");
+                            firstVideoLessonInSectionMasterPlanGenerated = true;
                         }
                         lessonsForThisSectionInMasterPlan.push(lessonEntry);
                     }
@@ -730,7 +755,7 @@ window.onload = function() {
                     let sectionEntry = {
                         udemySectionTitle: udemySectionFromScrape.sectionTitle,
                         sectionIndex: sectionIdx,
-                        sectionIntroSlide: getSlideFile(sequentialSlideAllocatorIndex++),
+                        sectionIntroSlide: allocatedSectionIntroSlide,
                         lessons: lessonsForThisSectionInMasterPlan
                     };
                     masterPlan.sections.push(sectionEntry);
@@ -913,7 +938,6 @@ window.onload = function() {
                     slidePathInput.value = path.join(currentBaseDirectory, "_02_SLIDES").replace(/\\/g, '/');
                 }
                 console.log("CLIENT TEST MODE: Autofilled Step 1 and derived paths for Step 2.");
-                 // Automatically click "Validate and Plan" if in test mode to load test JSON
                 if (validateAndPlanButton) {
                     validateAndPlanButton.click();
                     console.log("CLIENT TEST MODE: Automatically triggered 'Validate and Plan' to load test JSON.");
