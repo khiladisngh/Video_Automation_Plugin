@@ -838,12 +838,12 @@ window.onload = function() {
                             lessonOutroSlide: getNextAvailableSequentialSlide()
                         };
 
-                        if (isFirstVideoLessonInCourse) {
+                        // Add Slide1 and Slide2 before the first video in each section
+                        if (lessonCounterForPProNaming === 1) { // First video in this section
                             lessonEntry.blankSlide1 = getFixedSlide(1);
                             lessonEntry.blankSlide2 = getFixedSlide(2);
-                            if (!lessonEntry.blankSlide1) planMessages.push({text: "Warning: Slide1.tif (or variant) expected but not found for first video lesson.", type: "info"});
-                            if (!lessonEntry.blankSlide2) planMessages.push({text: "Warning: Slide2.tif (or variant) expected but not found for first video lesson.", type: "info"});
-                            isFirstVideoLessonInCourse = false; // Only assign for the very first video lesson
+                            if (!lessonEntry.blankSlide1) planMessages.push({text: "Warning: Slide1.tif (or variant) expected but not found for first video in section.", type: "info"});
+                            if (!lessonEntry.blankSlide2) planMessages.push({text: "Warning: Slide2.tif (or variant) expected but not found for first video in section.", type: "info"});
                         }
                         lessonsForThisSectionInMasterPlan.push(lessonEntry);
                     }
