@@ -4,7 +4,7 @@
 
 This plugin streamlines the process of creating video projects by taking your course structure (e.g., from Udemy), local video files, and slide assets, then automatically setting up your Premiere Pro project with organized bins and sequences.
 
-![Placeholder for Plugin Demo GIF](https://placehold.co/800x450/252525/F0F0F0?text=Plugin+Interface+Demo+GIF)
+![Placeholder for Plugin Demo GIF](./resource/demo.gif)
 *(Replace this with a GIF showcasing the plugin's UI and core functionality)*
 
 ## ✨ Features
@@ -125,9 +125,6 @@ The plugin guides you through a 3-step process:
         * Lesson intro slide.
         * The matched video clip.
         * Lesson outro slide.
-
-![Placeholder for Premiere Pro Bins GIF](https://placehold.co/600x400/252525/F0F0F0?text=Organized+PPro+Bins+GIF)
-*(Replace this with a GIF showing the organized bins and sequences in Premiere Pro after processing)*
 
 ## 💻 Technical Stack
 

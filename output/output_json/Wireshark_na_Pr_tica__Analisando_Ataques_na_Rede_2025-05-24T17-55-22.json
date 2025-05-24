@@ -1,0 +1,397 @@
+{
+  "courseTitle": "Wireshark na Prática: Analisando Ataques na Rede",
+  "scrapedUrl": "https://www.udemy.com/course/wireshark-tcpip",
+  "scrapeTimestamp": "2025-05-24T17:55:22.470Z",
+  "sections": [
+    {
+      "sectionTitle": "Introdução ao Curso e Nivelamento",
+      "lessons": [
+        {
+          "lessonTitle": "Abertura e resumo do curso",
+          "duration": "02:00"
+        },
+        {
+          "lessonTitle": "Ao concluir o curso, estarei apto a responder quais questões?",
+          "duration": "00:00"
+        },
+        {
+          "lessonTitle": "Apresentação do curso e objetivos",
+          "duration": "10:23"
+        },
+        {
+          "lessonTitle": "Comunicado importante!",
+          "duration": "00:55"
+        },
+        {
+          "lessonTitle": "Preparação do laboratório e requisitos",
+          "duration": "02:22"
+        },
+        {
+          "lessonTitle": "Primeiro contato com máquinas virtuais? Acesse o curso gratuito de VirtualBox",
+          "duration": "00:17"
+        },
+        {
+          "lessonTitle": "Preparação do ambiente de laboratório (VM Kali Linux)",
+          "duration": "12:24"
+        },
+        {
+          "lessonTitle": "Preparação do ambiente de laboratório (VM Windows)",
+          "duration": "09:20"
+        },
+        {
+          "lessonTitle": "Link dos materiais complementares e VM Windows",
+          "duration": "00:06"
+        },
+        {
+          "lessonTitle": "Detalhes das opções de conectividade de rede no Virtual Box",
+          "duration": "07:40"
+        },
+        {
+          "lessonTitle": "Desativando Firewall e AV na VM do Windows 10",
+          "duration": "03:16"
+        },
+        {
+          "lessonTitle": "Compartilhando arquivos com a VM",
+          "duration": "03:54"
+        },
+        {
+          "lessonTitle": "Quiz: Lá vem a teoria… Preciso assistir? Quais assuntos vamos explorar?",
+          "duration": "00:00"
+        },
+        {
+          "lessonTitle": "Leitura Recomendada: Slide do Tópico 1 - Introdução em Redes",
+          "duration": "00:49"
+        },
+        {
+          "lessonTitle": "Introdução em Redes de Computadores e Protocolos",
+          "duration": "09:27"
+        },
+        {
+          "lessonTitle": "Encapsulamento e os papéis de cada camada",
+          "duration": "09:16"
+        },
+        {
+          "lessonTitle": "Introdução ao TCP/IP",
+          "duration": "08:05"
+        },
+        {
+          "lessonTitle": "Conteúdo Complementar: A História da Internet",
+          "duration": "00:12"
+        }
+      ],
+      "rawPanelIndex": 0
+    },
+    {
+      "sectionTitle": "Introdução à Análise de Tráfego e Wireshark",
+      "lessons": [
+        {
+          "lessonTitle": "Quiz: Lá vem a teoria… Preciso assistir? Quais assuntos vamos explorar?",
+          "duration": "00:00"
+        },
+        {
+          "lessonTitle": "Leitura Recomendada: Slide do Tópico 2 - Análise de Tráfego",
+          "duration": "00:25"
+        },
+        {
+          "lessonTitle": "Análise de Tráfego, por onde começar?",
+          "duration": "15:34"
+        },
+        {
+          "lessonTitle": "Instalação do Wireshark",
+          "duration": "07:21"
+        },
+        {
+          "lessonTitle": "Apresentação inicial do Wireshark e a primeira captura - Parte 1",
+          "duration": "13:54"
+        },
+        {
+          "lessonTitle": "Apresentação inicial do Wireshark e a primeira captura - Parte 2",
+          "duration": "09:39"
+        },
+        {
+          "lessonTitle": "Repositórios de arquivos de captura de tráfego",
+          "duration": "04:07"
+        },
+        {
+          "lessonTitle": "Conceitos sobre TCP/IP e comunicação (encapsulamento) no Wireshark - Parte 1",
+          "duration": "11:46"
+        },
+        {
+          "lessonTitle": "Conceitos sobre TCP/IP e comunicação (encapsulamento) no Wireshark - Parte 2",
+          "duration": "11:03"
+        },
+        {
+          "lessonTitle": "Analisando uma captura: Estatísticas e Conversações",
+          "duration": "08:02"
+        },
+        {
+          "lessonTitle": "Visualizando os cabeçalhos dos principais protocolos no Wireshark",
+          "duration": "10:11"
+        },
+        {
+          "lessonTitle": "O que podemos obter em uma simples captura de tráfego? Parte 1",
+          "duration": "12:00"
+        },
+        {
+          "lessonTitle": "O que podemos obter em uma simples captura de tráfego? Parte 2",
+          "duration": "16:04"
+        },
+        {
+          "lessonTitle": "Utilizando o tcpdump e exportando para o Wireshark",
+          "duration": "10:32"
+        },
+        {
+          "lessonTitle": "Utilizando filtros no Wireshark",
+          "duration": "07:50"
+        },
+        {
+          "lessonTitle": "Pesquisar pacotes, filtrar pacotes e aplicar filtros de captura",
+          "duration": "06:09"
+        },
+        {
+          "lessonTitle": "Ajustando Dissector Plugin incorreto - Serviços em portas diferentes do padrão",
+          "duration": "04:43"
+        },
+        {
+          "lessonTitle": "Customizando Colunas",
+          "duration": "04:34"
+        },
+        {
+          "lessonTitle": "Timestamp, Merge e Export",
+          "duration": "04:53"
+        }
+      ],
+      "rawPanelIndex": 1
+    },
+    {
+      "sectionTitle": "Construindo pacotes manualmente com o Packet Builder",
+      "lessons": [
+        {
+          "lessonTitle": "Introdução ao Packet Builder e construção manual de pacotes",
+          "duration": "11:40"
+        },
+        {
+          "lessonTitle": "Construindo pacotes e realizando testes",
+          "duration": "08:15"
+        },
+        {
+          "lessonTitle": "Utilizando os pacotes criados para simular ataques com o Packet Player",
+          "duration": "03:24"
+        },
+        {
+          "lessonTitle": "Configurando o Valhala Honeypot para simular os ataques dos próximos módulos",
+          "duration": "08:45"
+        }
+      ],
+      "rawPanelIndex": 2
+    },
+    {
+      "sectionTitle": "Análise e detecção de ataques: Camada de Enlace e de Rede",
+      "lessons": [
+        {
+          "lessonTitle": "Quiz: Lá vem a teoria… Preciso assistir? Quais assuntos vamos explorar?",
+          "duration": "00:00"
+        },
+        {
+          "lessonTitle": "Leitura Recomendada: Slide sobre a Camada de Enlace",
+          "duration": "00:17"
+        },
+        {
+          "lessonTitle": "Introdução aos protocolos e vulnerabilidades da Camada de Enlace",
+          "duration": "17:00"
+        },
+        {
+          "lessonTitle": "Leitura Recomendada: Slide sobre a Camada de Rede",
+          "duration": "00:12"
+        },
+        {
+          "lessonTitle": "Introdução aos protocolos e vulnerabilidades da Camada de Rede",
+          "duration": "19:46"
+        },
+        {
+          "lessonTitle": "Capturando Pacotes: ARP Poisoning (conceitos e Packet Builder)",
+          "duration": "08:17"
+        },
+        {
+          "lessonTitle": "Capturando Pacotes: ARP Poisoning (na prática com Ettercap)",
+          "duration": "11:11"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: ARP Poisoning",
+          "duration": "05:47"
+        },
+        {
+          "lessonTitle": "Capturando Pacotes: IP Spoofing (na prática com sTerm)",
+          "duration": "10:33"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: IP Spoofing",
+          "duration": "11:56"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: ICMP Tunneling",
+          "duration": "06:48"
+        },
+        {
+          "lessonTitle": "Recomendações para mitigação dos ataques: Camada de Enlace",
+          "duration": "08:24"
+        },
+        {
+          "lessonTitle": "Recomendações para mitigação dos ataques: Camada de Rede",
+          "duration": "07:42"
+        }
+      ],
+      "rawPanelIndex": 3
+    },
+    {
+      "sectionTitle": "Análise e detecção de ataques: Camada de Transporte",
+      "lessons": [
+        {
+          "lessonTitle": "Quiz: Lá vem a teoria… Preciso assistir? Quais assuntos vamos explorar?",
+          "duration": "00:00"
+        },
+        {
+          "lessonTitle": "Leitura Recomendada: Slide sobre a Camada de Transporte",
+          "duration": "00:14"
+        },
+        {
+          "lessonTitle": "Introdução aos protocolos da Camada de Transporte - Parte 1 (Detalhes TCP e UDP)",
+          "duration": "16:56"
+        },
+        {
+          "lessonTitle": "Introdução aos protocolos da Camada de Transporte - Parte 2 (3-Way Hanshake)",
+          "duration": "18:08"
+        },
+        {
+          "lessonTitle": "Introdução as vulnerabilidades da Camada de Transporte",
+          "duration": "12:13"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: Que ataque é esse? De onde veio?",
+          "duration": "10:55"
+        },
+        {
+          "lessonTitle": "Capturando Pacotes: SYN Flood (Packet Builder) + ARP Poisoning e Smurf",
+          "duration": "09:35"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: SYN Flood + ARP Poisoning + Smurf",
+          "duration": "11:12"
+        },
+        {
+          "lessonTitle": "Capturando Pacotes: Port Scanning - Métodos de Scan",
+          "duration": "09:26"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: Port Scanning - Métodos de Scan (Parte 1)",
+          "duration": "16:06"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: Port Scanning - Métodos de Scan (Parte 2)",
+          "duration": "16:19"
+        },
+        {
+          "lessonTitle": "Capturando Pacotes: Port Scanning - OS Fingerprints",
+          "duration": "05:54"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: Port Scanning - OS Fingerprints",
+          "duration": "14:33"
+        },
+        {
+          "lessonTitle": "Recomendações para mitigação dos ataques: Camada de Transporte",
+          "duration": "05:33"
+        }
+      ],
+      "rawPanelIndex": 4
+    },
+    {
+      "sectionTitle": "Análise e detecção de ataques: Camada de Aplicação",
+      "lessons": [
+        {
+          "lessonTitle": "Quiz: Lá vem a teoria… Preciso assistir? Quais assuntos vamos explorar?",
+          "duration": "00:00"
+        },
+        {
+          "lessonTitle": "Leitura Recomendada: Slide sobre a Camada de Aplicação",
+          "duration": "00:11"
+        },
+        {
+          "lessonTitle": "Introdução aos protocolos e vulnerabilidades da Camada de Aplicação",
+          "duration": "20:59"
+        },
+        {
+          "lessonTitle": "Filtrando e analisando o acesso HTTP e HTTPS",
+          "duration": "05:41"
+        },
+        {
+          "lessonTitle": "Capturando Pacotes: Buffer Overflow e Payload Bind TCP",
+          "duration": "13:02"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: Buffer Overflow e Payload Bind TCP",
+          "duration": "08:05"
+        },
+        {
+          "lessonTitle": "Capturando Pacotes: Brute Force",
+          "duration": "05:22"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: Brute Force",
+          "duration": "04:18"
+        },
+        {
+          "lessonTitle": "Capturando Pacotes: Web Scanning",
+          "duration": "11:02"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: Web Scanning",
+          "duration": "12:16"
+        },
+        {
+          "lessonTitle": "Capturando Pacotes: Web Burp Suite",
+          "duration": "09:20"
+        },
+        {
+          "lessonTitle": "Analisando Pacotes no Wireshark: Web Burp Suite",
+          "duration": "03:38"
+        },
+        {
+          "lessonTitle": "Recomendações para mitigação dos ataques: Camada de Aplicação",
+          "duration": "10:04"
+        }
+      ],
+      "rawPanelIndex": 5
+    },
+    {
+      "sectionTitle": "Considerações finais e práticas formativas",
+      "lessons": [
+        {
+          "lessonTitle": "Encerramento e fontes de estudo a partir daqui",
+          "duration": "05:42"
+        },
+        {
+          "lessonTitle": "Conteúdo Complementar: Links citados no vídeo anterior",
+          "duration": "00:14"
+        },
+        {
+          "lessonTitle": "Avaliação Final: Consolidando o aprendizado",
+          "duration": "00:00"
+        },
+        {
+          "lessonTitle": "Como obter o certificado",
+          "duration": "03:00"
+        },
+        {
+          "lessonTitle": "Vouchers promocionais para meus cursos da Udemy",
+          "duration": "00:37"
+        },
+        {
+          "lessonTitle": "Podcast \"Prosa de TI\" - Trajetórias e possibilidades de carreira em TI",
+          "duration": "00:22"
+        }
+      ],
+      "rawPanelIndex": 6
+    }
+  ]
+}
