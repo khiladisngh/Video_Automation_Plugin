@@ -76,7 +76,7 @@ This method involves copying the plugin files directly into the Adobe CEP extens
 
 4.  **Verify Installation:**
     * Launch Adobe Premiere Pro.
-    * Go to `Window > Extensions`. You should see "ECCouncil Plugin" (the menu name defined in `manifest.xml`) listed. Click it to open the panel.
+    * Go to `Window > Extensions`. You should see "Video Automator Plugin" (the menu name defined in `manifest.xml`) listed. Click it to open the panel.
 
 ## 🛠️ Usage
 

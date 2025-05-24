@@ -1,6 +1,6 @@
 {
-  "name": "eccouncil-udemy-automator",
-  "version": "1.0.0",
+  "name": "video-automator",
+  "version": "0.1.1",
   "description": "Premiere Pro plugin to automate Udemy course video processing.",
   "dependencies": {
     "puppeteer": "^24.9.0",
